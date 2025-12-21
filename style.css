@@ -11,6 +11,13 @@
   --muted: #a7b2d1;
   --danger: #ff6b6b;
 }
+.profile-image img {
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-left: 25%;
+}
 
 * {
   box-sizing: border-box;
