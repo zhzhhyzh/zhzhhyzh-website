@@ -12,13 +12,13 @@
       "source": "/api/(.*)",
       "destination": "server.js"
     },
+     {
+      "source": "/pnc",
+      "destination": "/pnc.html"
+    },
     {
       "source": "/((?!api|assets|.*\\..*$).*)",
       "destination": "/index.html"
-    },
-    {
-      "source": "/pnc",
-      "destination": "/pnc.html"
     }
   ]
 }
