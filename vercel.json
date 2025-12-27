@@ -1,24 +1,13 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "server.js", "use": "@vercel/node" },
-    { "src": "index.html", "use": "@vercel/static" },
-    { "src": "assets/**", "use": "@vercel/static" },
-    { "src": "*.js", "use": "@vercel/static" },
-    { "src": "*.css", "use": "@vercel/static" }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "server.js"
-    },
-     {
-      "source": "/pnc",
-      "destination": "/pnc.html"
-    },
-    {
-      "source": "/((?!api|assets|.*\\..*$).*)",
-      "destination": "/index.html"
-    }
+  "cleanUrls": true,
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/server.js" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/style.css", "dest": "/style.css" },
+    { "src": "/script.js", "dest": "/script.js" },
+    { "src": "/capture.js", "dest": "/capture.js" },
+    { "src": "/pnc", "dest": "/pnc.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
