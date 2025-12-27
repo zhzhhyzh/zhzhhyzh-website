@@ -9,10 +9,6 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // Routes
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
 app.get('/pnc', (req, res) => {
   res.sendFile(path.join(__dirname, 'pnc.html'));
 });
