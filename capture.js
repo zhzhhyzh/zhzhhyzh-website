@@ -12,7 +12,7 @@ async function captureVisitorData() {
     const dateTime = new Date().toISOString();
 
     // Send data to server
-    const captureResponse = await fetch('/capture', {
+    const captureResponse = await fetch('/api/capture', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
