@@ -6,7 +6,9 @@ async function captureVisitorData() {
     const data = await response.json();
     const ip = data.ip;
     const region = data.region;
-
+    const long = data.longitude;
+    const lat = data.latitude;
+    const tempLongLat = long + "," + lat;
     // Get current date and time
     const dateTime = new Date().toISOString();
 
@@ -16,7 +18,7 @@ async function captureVisitorData() {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ ip, region, dateTime })
+      body: JSON.stringify({ ip, region, dateTime, tempLongLat })
     });
 
     if (captureResponse.ok) {
