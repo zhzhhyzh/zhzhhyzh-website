@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -7,6 +9,15 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware to parse JSON
 app.use(express.json());
+
+// Routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/pnc', (req, res) => {
+  res.sendFile(path.join(__dirname, 'pnc.html'));
+});
 
 // Serve static files from the root directory
 app.use(express.static('.'));
@@ -62,6 +73,16 @@ app.post('/capture', (req, res) => {
       res.json({ success: true });
     });
   });
+});
+
+// Endpoint to authenticate
+app.post('/auth', (req, res) => {
+  const { password } = req.body;
+  if (password === process.env.PASSWORD) {
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ success: false, error: 'Incorrect password' });
+  }
 });
 
 app.listen(PORT, () => {
