@@ -13,7 +13,7 @@
       "destination": "server.js"
     },
     {
-      "source": "/((?!api|assets|.*\\..*$).*)",
+      "source": "/((?!api|assets|pnc|.*\\..*$).*)",
       "destination": "/index.html"
     }
   ]
