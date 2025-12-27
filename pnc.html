@@ -28,85 +28,24 @@
     h1 {
       color: #333;
     }
-    .auth {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 50vh;
-    }
-    .auth input {
-      padding: 10px;
-      margin: 10px;
-      font-size: 16px;
-    }
-    .auth button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .content {
-      display: none;
-    }
   </style>
 </head>
 <body>
-  <div class="auth">
-    <h2>Enter Password</h2>
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="checkPassword()">Submit</button>
-  </div>
-
-  <div class="content">
-    <h1>Visitor Data</h1>
-    <button onclick="downloadCSV()">Download CSV</button>
-    <table id="dataTable">
-      <thead>
-        <tr>
-          <th>IP</th>
-          <th>Region</th>
-          <th>Date & Time</th>
-          <th>LongLat</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Data will be inserted here -->
-      </tbody>
-    </table>
-  </div>
+  <h1>Visitor Data</h1>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>IP</th>
+        <th>Region</th>
+        <th>Date & Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data will be inserted here -->
+    </tbody>
+  </table>
 
   <script>
-    async function checkPassword() {
-      const password = document.getElementById('password').value;
-      try {
-        const response = await fetch('/auth', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ password })
-        });
-        const data = await response.json();
-        if (data.success) {
-          document.querySelector('.auth').style.display = 'none';
-          document.querySelector('.content').style.display = 'block';
-          loadData();
-        } else {
-          alert('Incorrect password');
-        }
-      } catch (error) {
-        console.error('Error authenticating:', error);
-        alert('Error authenticating');
-      }
-    }
-
-    function downloadCSV() {
-      const link = document.createElement('a');
-      link.href = '/assets/pnc/index.csv';
-      link.download = 'visitor_data.csv';
-      link.click();
-    }
-
     async function loadData() {
       try {
         const response = await fetch('/assets/pnc/index.csv');

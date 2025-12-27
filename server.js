@@ -71,16 +71,6 @@ app.post('/capture', (req, res) => {
   });
 });
 
-// Endpoint to authenticate
-app.post('/auth', (req, res) => {
-  const { password } = req.body;
-  if (password === process.env.PASSWORD) {
-    res.json({ success: true });
-  } else {
-    res.status(401).json({ success: false, error: 'Incorrect password' });
-  }
-});
-
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
