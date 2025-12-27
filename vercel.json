@@ -2,7 +2,8 @@
   "version": 2,
   "builds": [
     { "src": "server.js", "use": "@vercel/node" },
-    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "assets/**", "use": "@vercel/static" },
     { "src": "*.js", "use": "@vercel/static" },
     { "src": "*.css", "use": "@vercel/static" }
   ],
@@ -12,7 +13,7 @@
       "destination": "server.js"
     },
     {
-      "source": "/((?!api|.*\\..*$).*)",
+      "source": "/((?!api|assets|.*\\..*$).*)",
       "destination": "/index.html"
     }
   ]
