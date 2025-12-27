@@ -1,7 +1,5 @@
 {
   "version": 2,
-  "installCommand": "npm install --force",
-  "startCommand": "npm run start",
   "builds": [
     {
       "src": "server.js",
