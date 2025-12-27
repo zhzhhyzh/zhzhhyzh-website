@@ -1,3 +1,4 @@
 node_modules
 .env
 ./assets/pnc/index.csv
+package-lock.json
