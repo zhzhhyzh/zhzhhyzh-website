@@ -8,33 +8,6 @@ const PORT = process.env.PORT || 3000;
 // Middleware to parse JSON
 app.use(express.json());
 
-// // Routes
-// app.get('/', (req, res) => {
-//   fs.readFile(path.join(__dirname, 'index.html'), 'utf8', (err, html) => {
-//     if (err) {
-//       return res.status(500).send('Error loading page');
-//     }
-//     fs.readFile(path.join(__dirname, 'style.css'), 'utf8', (err, css) => {
-//       if (err) {
-//         return res.status(500).send('Error loading CSS');
-//       }
-//       fs.readFile(path.join(__dirname, 'script.js'), 'utf8', (err, js) => {
-//         if (err) {
-//           return res.status(500).send('Error loading JS');
-//         }
-//         // Replace the link and script tags with inline
-//         let modifiedHtml = html.replace('<link rel="stylesheet" href="style.css" />', `<style>${css}</style>`);
-//         modifiedHtml = modifiedHtml.replace('<script defer src="script.js"></script>', `<script>${js}</script>`);
-//         res.send(modifiedHtml);
-//       });
-//     });
-//   });
-// });
-
-app.get('/pnc', (req, res) => {
-  res.sendFile(path.join(__dirname, 'pnc.html'));
-});
-
 // Serve static files from the root directory
 app.use(express.static('.'));
 

@@ -66,6 +66,7 @@
           <th>IP</th>
           <th>Region</th>
           <th>Date & Time</th>
+          <th>LongLat</th>
         </tr>
       </thead>
       <tbody>
@@ -115,12 +116,13 @@
         tbody.innerHTML = ''; // Clear existing rows
 
         for (let i = 1; i < lines.length; i++) { // Skip header
-          const [ip, region, dateTime] = lines[i].split(',');
+          const [ip, region, dateTime, LongLat] = lines[i].split(',');
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${ip}</td>
             <td>${region}</td>
             <td>${dateTime}</td>
+            <td>${LongLat}</td>
           `;
           tbody.appendChild(row);
         }
@@ -130,6 +132,9 @@
         tbody.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>';
       }
     }
+
+    // Load data on page load
+    window.addEventListener('load', loadData);
   </script>
 </body>
 </html>
