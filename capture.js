@@ -7,12 +7,12 @@ async function captureVisitorData() {
     const ip = data.ip;
     const region = data.region;
 
-    const longLat = `${data.longitude} ${data.latitude}`;
+    const longLat = `${data.latitude} ${data.longitude}`;
     // Get current date and time
     const dateTime = new Date().toISOString();
 
     // Send data to server
-    const captureResponse = await fetch('/api/capture', {
+    const captureResponse = await fetch('/capture', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
