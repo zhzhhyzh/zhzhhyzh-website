@@ -1,4 +1,5 @@
 // Capture visitor data and send to server
+const backendURL = '';
 async function captureVisitorData() {
   try {
     // Get IP and region

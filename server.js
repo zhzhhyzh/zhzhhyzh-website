@@ -1,15 +1,278 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+const http = require('http');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// =========================================================
+// GitHub Stats Cache Configuration (Vercel Compatible)
+// =========================================================
+// Use /tmp for Vercel serverless (ephemeral but works within function lifecycle)
+const isVercel = process.env.VERCEL === '1';
+const CACHE_DIR = isVercel 
+  ? path.join('/tmp', 'github-stats-cache')
+  : path.join(__dirname, '.cache', 'github-stats');
+
+// Cache duration: 1 hour for server, CDN handles edge caching
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+const CDN_CACHE_SECONDS = 3600; // 1 hour CDN cache
+const STALE_WHILE_REVALIDATE = 86400; // Allow stale for 24h while refreshing
+
+// GitHub stats URLs with alternatives (primary + fallbacks)
+const GITHUB_STATS_CONFIG = {
+  'trophies': {
+    urls: [
+      'https://github-profile-trophy.vercel.app/?username=zhzhhyzh&theme=tokyonight&margin-w=10&margin-h=10&no-bg=true&no-frame=true',
+      'https://github-trophies.vercel.app/?username=zhzhhyzh&theme=tokyonight&margin-w=10&margin-h=10&no-bg=true&no-frame=true',
+    ],
+    fallbackSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="120" viewBox="0 0 800 120">
+      <rect width="100%" height="100%" fill="#1a1b27" rx="10"/>
+      <text x="400" y="65" text-anchor="middle" fill="#70a5fd" font-family="sans-serif" font-size="16">GitHub Trophies - Loading...</text>
+    </svg>`
+  },
+  'stats': {
+    urls: [
+      'https://github-readme-stats.vercel.app/api?username=zhzhhyzh&show_icons=true&theme=tokyonight&hide_border=true',
+      'https://github-readme-stats-eight-theta.vercel.app/api?username=zhzhhyzh&show_icons=true&theme=tokyonight&hide_border=true',
+      'https://github-readme-stats-git-masterrstaa-rickstaa.vercel.app/api?username=zhzhhyzh&show_icons=true&theme=tokyonight&hide_border=true',
+    ],
+    fallbackSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="195" viewBox="0 0 400 195">
+      <rect width="100%" height="100%" fill="#1a1b27" rx="10"/>
+      <text x="200" y="100" text-anchor="middle" fill="#70a5fd" font-family="sans-serif" font-size="14">GitHub Stats - Temporarily Unavailable</text>
+    </svg>`
+  },
+  'languages': {
+    urls: [
+      'https://github-readme-stats.vercel.app/api/top-langs/?username=zhzhhyzh&layout=compact&theme=tokyonight&hide_border=true',
+      'https://github-readme-stats-eight-theta.vercel.app/api/top-langs/?username=zhzhhyzh&layout=compact&theme=tokyonight&hide_border=true',
+      'https://github-readme-stats-git-masterrstaa-rickstaa.vercel.app/api/top-langs/?username=zhzhhyzh&layout=compact&theme=tokyonight&hide_border=true',
+    ],
+    fallbackSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="350" height="165" viewBox="0 0 350 165">
+      <rect width="100%" height="100%" fill="#1a1b27" rx="10"/>
+      <text x="175" y="85" text-anchor="middle" fill="#70a5fd" font-family="sans-serif" font-size="14">Top Languages - Temporarily Unavailable</text>
+    </svg>`
+  },
+  'streak': {
+    urls: [
+      'https://github-readme-streak-stats.herokuapp.com/?user=zhzhhyzh&theme=tokyonight&hide_border=true',
+      'https://streak-stats.demolab.com/?user=zhzhhyzh&theme=tokyonight&hide_border=true',
+    ],
+    fallbackSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="195" viewBox="0 0 400 195">
+      <rect width="100%" height="100%" fill="#1a1b27" rx="10"/>
+      <text x="200" y="100" text-anchor="middle" fill="#70a5fd" font-family="sans-serif" font-size="14">GitHub Streak - Temporarily Unavailable</text>
+    </svg>`
+  }
+};
+
+// Simple key list for backwards compatibility
+const GITHUB_STATS = Object.fromEntries(
+  Object.entries(GITHUB_STATS_CONFIG).map(([key, config]) => [key, config.urls[0]])
+);
+
+// In-memory cache for serverless (persists within function warm state)
+let memoryCache = {};
+
+// Ensure cache directory exists
+function ensureCacheDir() {
+  if (!fs.existsSync(CACHE_DIR)) {
+    fs.mkdirSync(CACHE_DIR, { recursive: true });
+  }
+}
+
+// Fetch image from URL
+function fetchImage(url) {
+  return new Promise((resolve, reject) => {
+    const protocol = url.startsWith('https') ? https : http;
+    
+    const request = protocol.get(url, { 
+      headers: { 
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'image/svg+xml,image/*,*/*'
+      },
+      timeout: 15000
+    }, (response) => {
+      // Handle redirects
+      if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+        fetchImage(response.headers.location).then(resolve).catch(reject);
+        return;
+      }
+      
+      if (response.statusCode !== 200) {
+        reject(new Error(`HTTP ${response.statusCode}`));
+        return;
+      }
+      
+      const chunks = [];
+      response.on('data', chunk => chunks.push(chunk));
+      response.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        resolve({ 
+          buffer, 
+          contentType: response.headers['content-type'] || 'image/svg+xml' 
+        });
+      });
+      response.on('error', reject);
+    });
+    
+    request.on('error', reject);
+    request.on('timeout', () => {
+      request.destroy();
+      reject(new Error('Request timeout'));
+    });
+  });
+}
+
+// Get cached image (memory + file fallback) with alternative providers
+async function getCachedImage(key) {
+  const config = GITHUB_STATS_CONFIG[key];
+  if (!config) throw new Error('Unknown stat key');
+  
+  const now = Date.now();
+  
+  // Check memory cache first (fastest)
+  if (memoryCache[key] && (now - memoryCache[key].cachedAt) < CACHE_DURATION) {
+    console.log(`[Cache] Memory HIT: ${key}`);
+    return memoryCache[key];
+  }
+  
+  // Check file cache
+  ensureCacheDir();
+  const cacheFile = path.join(CACHE_DIR, `${key}.svg`);
+  const metaFile = path.join(CACHE_DIR, `${key}.json`);
+  
+  if (fs.existsSync(cacheFile) && fs.existsSync(metaFile)) {
+    try {
+      const meta = JSON.parse(fs.readFileSync(metaFile, 'utf8'));
+      if ((now - meta.cachedAt) < CACHE_DURATION) {
+        const buffer = fs.readFileSync(cacheFile);
+        memoryCache[key] = { buffer, contentType: meta.contentType, cachedAt: meta.cachedAt };
+        console.log(`[Cache] File HIT: ${key}`);
+        return memoryCache[key];
+      }
+    } catch (e) {
+      // Cache read failed, fetch fresh
+    }
+  }
+  
+  // Try each URL in order until one works
+  console.log(`[Cache] MISS, fetching: ${key}`);
+  let lastError = null;
+  
+  for (const url of config.urls) {
+    try {
+      console.log(`[Cache] Trying: ${url.substring(0, 60)}...`);
+      const { buffer, contentType } = await fetchImage(url);
+      
+      // Verify it's a valid SVG (not an error page)
+      const content = buffer.toString('utf8').substring(0, 200);
+      if (content.includes('<svg') || content.includes('<?xml')) {
+        // Save to file cache
+        try {
+          fs.writeFileSync(cacheFile, buffer);
+          fs.writeFileSync(metaFile, JSON.stringify({ cachedAt: now, contentType }));
+        } catch (e) {
+          console.error(`[Cache] File write error: ${e.message}`);
+        }
+        
+        // Save to memory cache
+        memoryCache[key] = { buffer, contentType, cachedAt: now };
+        console.log(`[Cache] SUCCESS: ${key} (${buffer.length} bytes)`);
+        return memoryCache[key];
+      } else {
+        console.log(`[Cache] Invalid response from provider (not SVG)`);
+        lastError = new Error('Invalid SVG response');
+      }
+    } catch (err) {
+      console.log(`[Cache] Provider failed: ${err.message}`);
+      lastError = err;
+    }
+  }
+  
+  // All providers failed - use fallback SVG
+  console.log(`[Cache] All providers failed for ${key}, using fallback`);
+  const fallbackBuffer = Buffer.from(config.fallbackSvg, 'utf8');
+  
+  // Cache the fallback for a shorter time (5 minutes)
+  memoryCache[key] = { 
+    buffer: fallbackBuffer, 
+    contentType: 'image/svg+xml', 
+    cachedAt: now - CACHE_DURATION + (5 * 60 * 1000) // Expire in 5 min
+  };
+  
+  return memoryCache[key];
+}
 
 // Middleware to parse JSON
 app.use(express.json());
 
 // Serve static files from the root directory
 app.use(express.static('.'));
+
+// =========================================================
+// GitHub Stats Cache Endpoints (Vercel CDN Compatible)
+// =========================================================
+app.get('/api/github-stats/:key', async (req, res) => {
+  const { key } = req.params;
+  
+  if (!GITHUB_STATS[key]) {
+    return res.status(404).json({ error: 'Unknown stat type' });
+  }
+  
+  try {
+    const { buffer, contentType } = await getCachedImage(key);
+    
+    // Vercel CDN cache headers - this is the key for static deployment!
+    // s-maxage: CDN cache duration (shared cache for all visitors)
+    // stale-while-revalidate: serve stale while fetching fresh in background
+    res.set({
+      'Content-Type': contentType,
+      'Cache-Control': `public, s-maxage=${CDN_CACHE_SECONDS}, stale-while-revalidate=${STALE_WHILE_REVALIDATE}`,
+      'CDN-Cache-Control': `public, max-age=${CDN_CACHE_SECONDS}`,
+      'Vercel-CDN-Cache-Control': `public, max-age=${CDN_CACHE_SECONDS}`
+    });
+    
+    res.send(buffer);
+  } catch (err) {
+    console.error(`[Cache] Error serving ${key}:`, err.message);
+    // Fallback: redirect to original URL with cache headers
+    res.set({
+      'Cache-Control': `public, s-maxage=300, stale-while-revalidate=3600`
+    });
+    res.redirect(GITHUB_STATS[key]);
+  }
+});
+
+// Endpoint to get cache status
+app.get('/api/github-stats-status', (req, res) => {
+  const status = {
+    isVercel,
+    cacheDir: CACHE_DIR,
+    cacheDurationMinutes: CACHE_DURATION / 60000,
+    cdnCacheSeconds: CDN_CACHE_SECONDS,
+    stats: {}
+  };
+  
+  for (const key of Object.keys(GITHUB_STATS)) {
+    const cached = memoryCache[key];
+    if (cached) {
+      const age = Date.now() - cached.cachedAt;
+      status.stats[key] = {
+        cached: true,
+        ageMinutes: Math.round(age / 60000),
+        expiresInMinutes: Math.max(0, Math.round((CACHE_DURATION - age) / 60000)),
+        size: cached.buffer ? cached.buffer.length : 0
+      };
+    } else {
+      status.stats[key] = { cached: false };
+    }
+  }
+  
+  res.set({ 'Cache-Control': 'no-cache' });
+  res.json(status);
+});
 
 // Ensure the directory exists
 const csvDir = path.join(__dirname, 'assets', 'pnc');
@@ -65,4 +328,9 @@ app.post('/capture', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Environment: ${isVercel ? 'Vercel Serverless' : 'Local/Node.js'}`);
+  console.log(`Cache directory: ${CACHE_DIR}`);
 });
+
+// Export for Vercel serverless
+module.exports = app;
