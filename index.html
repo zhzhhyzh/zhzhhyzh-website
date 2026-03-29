@@ -73,6 +73,16 @@
         pointer-events: none;
       }
       
+      /* Lock scroll during preloader */
+      html.preloader-active,
+      html.preloader-active body {
+        overflow: hidden !important;
+        height: 100% !important;
+        position: fixed !important;
+        width: 100% !important;
+        top: 0 !important;
+      }
+      
       .book-container {
         perspective: 1000px;
         position: relative;
@@ -297,20 +307,33 @@
   </div>
   
   <script>
-    // Hide preloader when page is fully loaded
-    window.addEventListener('load', function() {
-      setTimeout(function() {
-        document.getElementById('preloader').classList.add('hidden');
-      }, 2800); // Wait for animations to complete
-    });
+    // Lock scroll immediately
+    document.documentElement.classList.add('preloader-active');
     
-    // Fallback: hide after 4 seconds max
-    setTimeout(function() {
+    // Scroll to top on page load
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+    
+    // Hide preloader and unlock scroll
+    function hidePreloader() {
       const preloader = document.getElementById('preloader');
       if (preloader && !preloader.classList.contains('hidden')) {
         preloader.classList.add('hidden');
+        document.documentElement.classList.remove('preloader-active');
+        // Ensure scroll to top
+        window.scrollTo({ top: 0, behavior: 'instant' });
       }
-    }, 4000);
+    }
+    
+    // Hide preloader when page is fully loaded
+    window.addEventListener('load', function() {
+      setTimeout(hidePreloader, 2800); // Wait for animations to complete
+    });
+    
+    // Fallback: hide after 4 seconds max
+    setTimeout(hidePreloader, 4000);
   </script>
 
   <!-- Cursor bubble -->

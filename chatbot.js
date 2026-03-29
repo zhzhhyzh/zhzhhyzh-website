@@ -187,6 +187,12 @@
     container.id = 'chatbot-container';
     container.innerHTML = chatbotHTML;
     document.body.appendChild(container);
+    
+    // Add backdrop for mobile tap-to-close
+    const backdrop = document.createElement('div');
+    backdrop.className = 'chatbot-backdrop';
+    backdrop.id = 'chatbotBackdrop';
+    document.body.appendChild(backdrop);
   }
 
   // Draggable functionality
@@ -304,12 +310,18 @@
   let isTyping = false;
   
   function toggleChat() {
-    const window = document.getElementById('chatbotWindow');
+    const chatWindow = document.getElementById('chatbotWindow');
     const toggle = document.getElementById('chatbotToggle');
+    const backdrop = document.getElementById('chatbotBackdrop');
     
     isOpen = !isOpen;
-    window.classList.toggle('open', isOpen);
+    chatWindow.classList.toggle('open', isOpen);
     toggle.classList.toggle('active', isOpen);
+    
+    // Show/hide backdrop on mobile
+    if (backdrop) {
+      backdrop.classList.toggle('visible', isOpen);
+    }
     
     if (isOpen) {
       // Show greeting if first time
@@ -629,8 +641,16 @@
     const sendBtn = document.getElementById('chatbotSend');
     const input = document.getElementById('chatbotInput');
     const quickActions = document.querySelectorAll('.quick-action');
+    const backdrop = document.getElementById('chatbotBackdrop');
     
     closeBtn.addEventListener('click', toggleChat);
+    
+    // Backdrop click to close (mobile)
+    if (backdrop) {
+      backdrop.addEventListener('click', () => {
+        if (isOpen) toggleChat();
+      });
+    }
     
     sendBtn.addEventListener('click', () => {
       sendMessage(input.value);
