@@ -274,21 +274,109 @@ app.get('/api/github-stats-status', (req, res) => {
   res.json(status);
 });
 
-// Ensure the directory exists
+// =========================================================
+// Visitor Tracking Storage (Vercel Compatible)
+// =========================================================
+// For Vercel: Use environment variables for Upstash Redis
+// Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+// In-memory fallback for local development
+let localVisitorData = [];
+
+// Upstash Redis helper functions
+async function upstashCommand(command, args = []) {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {
+    return null; // Fallback to local storage
+  }
+  
+  try {
+    const response = await fetch(`${UPSTASH_URL}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${UPSTASH_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify([command, ...args])
+    });
+    const data = await response.json();
+    return data.result;
+  } catch (err) {
+    console.error('[Upstash] Error:', err.message);
+    return null;
+  }
+}
+
+// Get all visitors from storage
+async function getVisitors() {
+  if (UPSTASH_URL && UPSTASH_TOKEN) {
+    const data = await upstashCommand('GET', ['visitors']);
+    if (data) {
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  }
+  
+  // Local fallback: try to read from CSV
+  if (!isVercel && fs.existsSync(csvFile)) {
+    try {
+      const content = fs.readFileSync(csvFile, 'utf8');
+      const lines = content.trim().split('\n').slice(1); // Skip header
+      return lines.map(line => {
+        const [ip, region, dateTime, longLat] = line.split(',');
+        return { ip, region, dateTime, longLat };
+      }).filter(v => v.ip);
+    } catch (e) {
+      return localVisitorData;
+    }
+  }
+  
+  return localVisitorData;
+}
+
+// Save visitors to storage
+async function saveVisitors(visitors) {
+  if (UPSTASH_URL && UPSTASH_TOKEN) {
+    await upstashCommand('SET', ['visitors', JSON.stringify(visitors)]);
+    return true;
+  }
+  
+  // Local fallback: write to CSV
+  if (!isVercel) {
+    try {
+      const csvContent = 'IP,Region,DateTime,longLat\n' + 
+        visitors.map(v => `${v.ip},${v.region},${v.dateTime},${v.longLat}`).join('\n') + '\n';
+      fs.writeFileSync(csvFile, csvContent);
+      return true;
+    } catch (e) {
+      console.error('[Storage] CSV write error:', e.message);
+    }
+  }
+  
+  localVisitorData = visitors;
+  return true;
+}
+
+// Ensure the directory exists (for local dev)
 const csvDir = path.join(__dirname, 'assets', 'pnc');
-if (!fs.existsSync(csvDir)) {
+if (!isVercel && !fs.existsSync(csvDir)) {
   fs.mkdirSync(csvDir, { recursive: true });
 }
 
 const csvFile = path.join(csvDir, 'index.csv');
 
-// Initialize CSV if it doesn't exist
-if (!fs.existsSync(csvFile)) {
+// Initialize CSV if it doesn't exist (local dev only)
+if (!isVercel && !fs.existsSync(csvFile)) {
   fs.writeFileSync(csvFile, 'IP,Region,DateTime,longLat\n');
 }
 
 // Endpoint to capture visitor data
-app.post('/capture', (req, res) => {
+app.post('/capture', async (req, res) => {
   const { ip, region, dateTime, longLat } = req.body;
   if (!ip || !region || !dateTime || !longLat) {
     return res.status(400).json({ error: 'Missing data' });
@@ -296,34 +384,55 @@ app.post('/capture', (req, res) => {
 
   const currentDate = dateTime.split('T')[0];
 
-  // Read the CSV to check for duplicates on the same day
-  fs.readFile(csvFile, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error reading CSV:', err);
-      return res.status(500).json({ error: 'Failed to read data' });
-    }
-
-    const lines = data.trim().split('\n');
-    const isDuplicate = lines.slice(1).some(line => { // Skip header
-      const [existingIp, , existingDateTime] = line.split(',');
-      const existingDate = existingDateTime.split('T')[0];
-      return existingIp === ip && existingDate === currentDate;
+  try {
+    const visitors = await getVisitors();
+    
+    // Check for duplicates on the same day
+    const isDuplicate = visitors.some(v => {
+      const existingDate = v.dateTime ? v.dateTime.split('T')[0] : '';
+      return v.ip === ip && existingDate === currentDate;
     });
 
     if (isDuplicate) {
       return res.json({ success: true, message: 'Data already exists for today' });
     }
 
-    // Append new data
-    const line = `${ip},${region},${dateTime},${longLat}\n`;
-    fs.appendFile(csvFile, line, (appendErr) => {
-      if (appendErr) {
-        console.error('Error writing to CSV:', appendErr);
-        return res.status(500).json({ error: 'Failed to save data' });
-      }
-      res.json({ success: true });
-    });
-  });
+    // Add new visitor
+    visitors.push({ ip, region, dateTime, longLat });
+    await saveVisitors(visitors);
+    
+    console.log(`[Visitor] New: ${ip} from ${region}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Visitor] Error:', err.message);
+    res.status(500).json({ error: 'Failed to save data' });
+  }
+});
+
+// API endpoint to get visitors (for pnc.html)
+app.get('/api/visitors', async (req, res) => {
+  try {
+    const visitors = await getVisitors();
+    
+    // Return as CSV format for compatibility
+    const csvContent = 'IP,Region,DateTime,longLat\n' + 
+      visitors.map(v => `${v.ip},${v.region},${v.dateTime},${v.longLat}`).join('\n');
+    
+    res.set('Content-Type', 'text/csv');
+    res.send(csvContent);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to read data' });
+  }
+});
+
+// JSON API endpoint
+app.get('/api/visitors/json', async (req, res) => {
+  try {
+    const visitors = await getVisitors();
+    res.json({ count: visitors.length, visitors });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to read data' });
+  }
 });
 
 app.listen(PORT, () => {

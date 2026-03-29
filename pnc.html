@@ -49,32 +49,45 @@
   <script>
     async function loadData() {
       try {
-        const response = await fetch('/assets/pnc/index.csv');
+        // Use API endpoint instead of static CSV file
+        const response = await fetch('/api/visitors');
         const csvText = await response.text();
         const lines = csvText.trim().split('\n');
         const tbody = document.querySelector('#dataTable tbody');
         tbody.innerHTML = ''; // Clear existing rows
 
+        if (lines.length <= 1) {
+          tbody.innerHTML = '<tr><td colspan="4">No visitors recorded yet</td></tr>';
+          return;
+        }
+
         for (let i = 1; i < lines.length; i++) { // Skip header
-          const [ip, region, dateTime,Longlat] = lines[i].split(',');
+          const [ip, region, dateTime, longLat] = lines[i].split(',');
+          if (!ip) continue;
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td>${ip}</td>
-            <td>${region}</td>
-            <td>${dateTime}</td>
-            <td>${Longlat}</td>
+            <td>${ip || '-'}</td>
+            <td>${region || '-'}</td>
+            <td>${dateTime || '-'}</td>
+            <td>${longLat || '-'}</td>
           `;
           tbody.appendChild(row);
         }
+        
+        // Update count
+        document.querySelector('h1').textContent = `Visitor Data (${lines.length - 1} records)`;
       } catch (error) {
         console.error('Error loading data:', error);
         const tbody = document.querySelector('#dataTable tbody');
-        tbody.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4">Error loading data. Make sure the server is running.</td></tr>';
       }
     }
 
     // Load data on page load
     window.addEventListener('load', loadData);
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadData, 30000);
   </script>
 </body>
 </html>
