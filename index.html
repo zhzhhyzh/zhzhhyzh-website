@@ -10,21 +10,309 @@
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='black'/><text x='50' y='62' font-size='56' text-anchor='middle' fill='white' font-family='sans-serif'>ZH.</text></svg>">
   <script>
-    let icons = ["💻", "🧠", "⚙️", "🚀"];
-    let i = 0;
-    setInterval(() => {
-      document.title = icons[i++ % icons.length] + " Zhe Heng Y.| Software Engineer";
-    }, 1000);
+    // Elegant title animation
+    const baseTitle = "Zhe Heng Y. | Software Engineer";
+    const prefixes = ["▸ ", "▹ ", "▸ ", "▹ "];
+    let prefixIndex = 0;
+    
+    // Typing effect for initial load
+    let charIndex = 0;
+    const typingSpeed = 80;
+    
+    function typeTitle() {
+      if (charIndex <= baseTitle.length) {
+        document.title = baseTitle.substring(0, charIndex) + (charIndex < baseTitle.length ? "│" : "");
+        charIndex++;
+        setTimeout(typeTitle, typingSpeed);
+      } else {
+        // After typing, start subtle pulse animation
+        setTimeout(startPulse, 500);
+      }
+    }
+    
+    function startPulse() {
+      setInterval(() => {
+        document.title = prefixes[prefixIndex % prefixes.length] + baseTitle;
+        prefixIndex++;
+      }, 800);
+    }
+    
+    // Start animation
+    document.title = "│";
+    setTimeout(typeTitle, 300);
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="chatbot.css" />
   <script defer src="script.js"></script>
+  <script defer src="chatbot.js"></script>
   <script defer src="capture.js"></script>
 </head>
 
 <body>
+  <!-- =========================================================
+       PRELOADER - Story Book Opening Animation
+       ========================================================= -->
+  <div id="preloader">
+    <style>
+      #preloader {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #0a0a0c 0%, #1a1a2e 100%);
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+      }
+      #preloader.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      
+      .book-container {
+        perspective: 1000px;
+        position: relative;
+      }
+      
+      .book {
+        width: 200px;
+        height: 280px;
+        position: relative;
+        transform-style: preserve-3d;
+        animation: bookFloat 2s ease-in-out infinite;
+      }
+      
+      @keyframes bookFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      
+      .book-cover {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1e3a5f, #0d1b2a);
+        border-radius: 4px 12px 12px 4px;
+        box-shadow: 
+          -5px 5px 20px rgba(0,0,0,0.4),
+          inset -2px 0 10px rgba(255,255,255,0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transform-origin: left center;
+        animation: openBook 1.5s ease-out 0.5s forwards;
+        backface-visibility: hidden;
+      }
+      
+      .book-cover::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 10%;
+        bottom: 10%;
+        width: 4px;
+        background: linear-gradient(180deg, #d4af37, #f4d03f, #d4af37);
+        border-radius: 2px;
+      }
+      
+      .book-title {
+        font-family: 'Georgia', serif;
+        color: #f4d03f;
+        font-size: 1.1rem;
+        text-align: center;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+      }
+      
+      .book-author {
+        font-family: 'Georgia', serif;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.85rem;
+        font-style: italic;
+      }
+      
+      .book-decoration {
+        width: 60px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #d4af37, transparent);
+        margin: 1rem 0;
+      }
+      
+      @keyframes openBook {
+        0% { transform: rotateY(0deg); }
+        100% { transform: rotateY(-160deg); }
+      }
+      
+      .book-page {
+        position: absolute;
+        width: calc(100% - 10px);
+        height: calc(100% - 10px);
+        top: 5px;
+        left: 5px;
+        background: linear-gradient(90deg, #f5f5dc 0%, #fffef0 50%, #f5f5dc 100%);
+        border-radius: 2px 10px 10px 2px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        box-sizing: border-box;
+        opacity: 0;
+        animation: showPage 0.5s ease-out 1.5s forwards;
+      }
+      
+      .book-page::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 5%;
+        bottom: 5%;
+        width: 1px;
+        background: rgba(0,0,0,0.1);
+      }
+      
+      @keyframes showPage {
+        to { opacity: 1; }
+      }
+      
+      .page-content {
+        text-align: center;
+        color: #1a1a2e;
+      }
+      
+      .page-greeting {
+        font-family: 'Georgia', serif;
+        font-size: 0.75rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+        opacity: 0;
+        animation: fadeIn 0.5s ease-out 1.8s forwards;
+      }
+      
+      .page-name {
+        font-family: 'Georgia', serif;
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #1a1a2e;
+        margin-bottom: 0.3rem;
+        opacity: 0;
+        animation: fadeIn 0.5s ease-out 2s forwards;
+      }
+      
+      .page-title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.65rem;
+        color: #0071e3;
+        letter-spacing: 1px;
+        opacity: 0;
+        animation: fadeIn 0.5s ease-out 2.2s forwards;
+      }
+      
+      .page-line {
+        width: 40px;
+        height: 1px;
+        background: #d4af37;
+        margin: 0.8rem 0;
+        opacity: 0;
+        animation: growLine 0.5s ease-out 2.4s forwards;
+      }
+      
+      @keyframes growLine {
+        from { width: 0; opacity: 0; }
+        to { width: 40px; opacity: 1; }
+      }
+      
+      .page-cta {
+        font-family: 'Georgia', serif;
+        font-size: 0.7rem;
+        color: #888;
+        font-style: italic;
+        opacity: 0;
+        animation: fadeIn 0.5s ease-out 2.6s forwards, pulse 1.5s ease-in-out 3.1s infinite;
+      }
+      
+      @keyframes fadeIn {
+        to { opacity: 1; }
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+      
+      .loading-bar {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 2px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      
+      .loading-bar::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, #0071e3, #5e5ce6);
+        animation: loadProgress 2.5s ease-out forwards;
+      }
+      
+      @keyframes loadProgress {
+        0% { width: 0; }
+        100% { width: 100%; }
+      }
+    </style>
+    
+    <div class="book-container">
+      <div class="book">
+        <div class="book-page">
+          <div class="page-content">
+            <div class="page-greeting">Welcome to the story of</div>
+            <div class="page-name">Zhe Heng</div>
+            <div class="page-title">SOFTWARE ENGINEER</div>
+            <div class="page-line"></div>
+            <div class="page-cta">Entering...</div>
+          </div>
+        </div>
+        <div class="book-cover">
+          <div class="book-title">Portfolio</div>
+          <div class="book-decoration"></div>
+          <div class="book-author">Zhe Heng Y.</div>
+        </div>
+      </div>
+    </div>
+    <div class="loading-bar"></div>
+  </div>
+  
+  <script>
+    // Hide preloader when page is fully loaded
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('preloader').classList.add('hidden');
+      }, 2800); // Wait for animations to complete
+    });
+    
+    // Fallback: hide after 4 seconds max
+    setTimeout(function() {
+      const preloader = document.getElementById('preloader');
+      if (preloader && !preloader.classList.contains('hidden')) {
+        preloader.classList.add('hidden');
+      }
+    }, 4000);
+  </script>
+
   <!-- Cursor bubble -->
   <!-- <div id="cursor-bubble"></div> -->
 
@@ -206,21 +494,43 @@
 
   <!-- Skills -->
   <section id="skills" class="glass-card container reveal">
-    <h2>🛠️ Skills & Tools</h2>
-    <div class="skills-grid">
-      <span>Java</span><span>Spring Boot</span><span>JavaScript</span><span>TypeScript</span>
-      <span>Node.js</span><span>Express.js</span><span>React</span><span>Flutter</span>
-      <span>Python</span><span>C++</span><span>MySQL</span><span>MongoDB</span>
-      <span>AWS (EC2, RDS, S3)</span><span>Docker</span><span>PM2</span><span>Git/GitHub/GitLab</span>
-      <span>Pandas</span><span>Scikit‑learn</span><span>Time‑Series</span><span>RL (PPO/Q‑learning)</span>
-      <span>Postman</span><span>Figma</span><span>VS Code</span><span>IntelliJ</span>
+    <h2>Skills & Tools</h2>
+    
+    <!-- Infinite Scrolling Skills Banner -->
+    <div class="skills-banner-container">
+      <div class="skills-banner" id="skillsBanner">
+        <div class="skills-track">
+          <span>Java</span><span>Spring Boot</span><span>JavaScript</span><span>TypeScript</span>
+          <span>Node.js</span><span>Express.js</span><span>React</span><span>Flutter</span>
+          <span>Python</span><span>C++</span><span>MySQL</span><span>MongoDB</span>
+          <span>AWS</span><span>Docker</span><span>Kubernetes</span><span>Git</span>
+          <span>Pandas</span><span>Scikit-learn</span><span>TensorFlow</span><span>RL (PPO/Q-learning)</span>
+          <span>Postman</span><span>Figma</span><span>VS Code</span><span>IntelliJ</span>
+          <!-- Duplicate for seamless loop -->
+          <span>Java</span><span>Spring Boot</span><span>JavaScript</span><span>TypeScript</span>
+          <span>Node.js</span><span>Express.js</span><span>React</span><span>Flutter</span>
+          <span>Python</span><span>C++</span><span>MySQL</span><span>MongoDB</span>
+          <span>AWS</span><span>Docker</span><span>Kubernetes</span><span>Git</span>
+          <span>Pandas</span><span>Scikit-learn</span><span>TensorFlow</span><span>RL (PPO/Q-learning)</span>
+          <span>Postman</span><span>Figma</span><span>VS Code</span><span>IntelliJ</span>
+        </div>
+      </div>
+      <div class="banner-hint">Drag to explore • Hover to pause</div>
     </div>
+    
     <div class="skill-notes">Clean architecture • REST/JSON • CI/CD • Testing • Cloud deployments</div>
 
-    <div class="icon-wall">
-      <img
-        src="https://skillicons.dev/icons?i=java,spring,react,nodejs,express,typescript,js,html,py,cpp,mysql,mongodb,aws,docker,git,postman,figma,flutter,scikitlearn,pandas&perline=10"
-        alt="Skill icons" loading="lazy" />
+    <!-- Icon Wall Banner -->
+    <div class="icon-banner-container">
+      <div class="icon-banner" id="iconBanner">
+        <div class="icon-track">
+          <img src="https://skillicons.dev/icons?i=java,spring,react,nodejs,express,typescript,js,html,py,cpp" alt="Skills 1" loading="lazy" />
+          <img src="https://skillicons.dev/icons?i=mysql,mongodb,aws,docker,git,postman,figma,flutter,sklearn,pytorch" alt="Skills 2" loading="lazy" />
+          <!-- Duplicate for seamless loop -->
+          <img src="https://skillicons.dev/icons?i=java,spring,react,nodejs,express,typescript,js,html,py,cpp" alt="Skills 1" loading="lazy" />
+          <img src="https://skillicons.dev/icons?i=mysql,mongodb,aws,docker,git,postman,figma,flutter,sklearn,pytorch" alt="Skills 2" loading="lazy" />
+        </div>
+      </div>
     </div>
   </section>
 

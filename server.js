@@ -435,6 +435,150 @@ app.get('/api/visitors/json', async (req, res) => {
   }
 });
 
+// =========================================================
+// AI Chatbot API (LLM Integration with Groq - FREE)
+// =========================================================
+// Set GROQ_API_KEY in environment variables (free at console.groq.com)
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+
+const ZHE_HENG_CONTEXT = `
+You are an AI assistant for Yeoh Zhe Heng's personal portfolio website. You MUST ONLY answer questions about Zhe Heng.
+
+## STRICT RULES:
+1. ONLY answer questions related to Zhe Heng (his work, skills, projects, education, contact, social media)
+2. For ANY unrelated questions (weather, news, general knowledge, other people, politics, etc.), respond with: "I'm Zhe Heng's assistant and can only answer questions about him. Try asking about his skills, projects, experience, or how to contact him!"
+3. Keep responses concise (2-4 sentences max for simple questions)
+4. Be friendly and professional
+5. Always redirect back to Zhe Heng's portfolio
+
+## ABOUT ZHE HENG:
+- Full Name: Yeoh Zhe Heng
+- Title: Software Engineer | Full-Stack Developer | AI & Cloud Enthusiast
+- Location: Kuala Lumpur, Malaysia
+- Email: henryyzh0309@gmail.com
+
+## SOCIAL MEDIA:
+- GitHub: github.com/zhzhhyzh
+- LinkedIn: linkedin.com/in/zhzhhyzh
+- LeetCode: leetcode.com/zhzhhyzh
+- Facebook: facebook.com/zhzhhyzh
+- Instagram: instagram.com/zhzhhyzh
+
+## EDUCATION:
+- University: Tunku Abdul Rahman University of Management & Technology (TARUMT)
+- Degree: Bachelor of Software Engineering (Hons), 2023-2026
+- CGPA: 3.97
+- Achievements: President's List x5, Soft Skill Competency Gold Award, Bachelor's Degree Scholarship
+
+## WORK EXPERIENCE:
+1. Java Backend Engineer at Ant International, TRX 106 KL (Nov 2025-Present)
+   - Payment innovation solutions using SOFA stack
+   - IoT backend development
+   - RESTful APIs for payment systems
+
+2. Project Developer at Persis - Remote (Mar 2025-Sep 2025)
+   - Built Persis App with Reinforcement Learning for personalized analytics
+   - Node.js backend + Python AI + Flutter frontend
+   - AWS EC2 deployment with PM2
+
+3. Full-Stack Developer at 33Digitec Solution, PJ KL (Mar 2023-Mar 2025)
+   - RESTful APIs using Node.js and Express
+   - Responsive React components
+   - Agile development with Git
+
+## SKILLS:
+- Languages: Java, JavaScript, TypeScript, Python, C++
+- Backend: Spring Boot, Node.js, Express.js
+- Frontend: React, Flutter
+- Databases: MySQL, MongoDB
+- Cloud: AWS (EC2, RDS, S3), Docker, Kubernetes
+- AI/ML: Reinforcement Learning (PPO, Q-learning), Time-Series Forecasting, Scikit-learn, Pandas
+- Tools: Git/GitHub/GitLab, PM2, Postman, Figma, VS Code, IntelliJ
+
+## PROJECTS:
+- StallSync: Full-stack canteen management (React, Node.js, MySQL) - Orders, Inventory, Rewards, Analytics
+- Invento: Inventory management with Spring Boot and React
+- AI/ML Projects: RL (PPO/Q-learning) and time-series forecasting on AWS
+- OpenGL 3D: 3D graphics with lighting using C++
+- Blockchain: Solidity smart contracts with Node.js integration
+- Mobile Apps: Flutter/Dart apps with MVC architecture
+
+## LANGUAGES SPOKEN:
+- Mandarin: Native
+- English: Proficient
+- Malay: Independent
+
+## CERTIFICATIONS:
+- AWS Cloud (Beginner/Practitioner track)
+
+## ACHIEVEMENTS:
+- TARUMT Bachelor's Degree Scholarship Recipient
+- President's List x5
+- Soft Skills Competency Gold Award
+- International experiences: Hackathons & Student Exchange in Vietnam, China, U.S.
+
+## PERSONAL:
+- Interests: Software Development, AI/ML, Cloud Technologies, Problem Solving, Hackathons
+- Hobbies: Coding, Learning new technologies, Building projects, Competitive programming
+- Personality: Passionate, hardworking, detail-oriented, team player
+- Status: Open to permanent roles
+
+Remember: ONLY answer about Zhe Heng. Politely decline any other topics.
+`;
+
+app.post('/api/chat', async (req, res) => {
+  const { question } = req.body;
+  
+  if (!question) {
+    return res.status(400).json({ error: 'Question required' });
+  }
+  
+  // Try Groq first (free), then OpenAI as fallback
+  const apiKey = GROQ_API_KEY || process.env.OPENAI_API_KEY;
+  const isGroq = !!GROQ_API_KEY;
+  
+  if (!apiKey) {
+    return res.status(503).json({ error: 'LLM not configured' });
+  }
+  
+  try {
+    const apiUrl = isGroq 
+      ? 'https://api.groq.com/openai/v1/chat/completions'
+      : 'https://api.openai.com/v1/chat/completions';
+    
+    const model = isGroq ? 'llama-3.1-70b-versatile' : 'gpt-3.5-turbo';
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: ZHE_HENG_CONTEXT },
+          { role: 'user', content: question }
+        ],
+        max_tokens: 300,
+        temperature: 0.7
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.choices && data.choices[0]) {
+      res.json({ response: data.choices[0].message.content });
+    } else {
+      console.error('[Chat API] Invalid response:', data);
+      res.status(500).json({ error: 'Invalid API response' });
+    }
+  } catch (err) {
+    console.error('[Chat API] Error:', err.message);
+    res.status(500).json({ error: 'Failed to get response' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`Environment: ${isVercel ? 'Vercel Serverless' : 'Local/Node.js'}`);

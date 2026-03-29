@@ -396,3 +396,124 @@ window.addEventListener("click", e => {
     modal.style.display = "none";
   }
 });
+
+// =========================================================
+// SKILLS BANNER - Drag to Scroll Functionality
+// =========================================================
+function initBannerDrag(bannerId, trackClass) {
+  const banner = document.getElementById(bannerId);
+  if (!banner) return;
+  
+  const track = banner.querySelector(trackClass);
+  if (!track) return;
+  
+  let isDragging = false;
+  let startX;
+  let scrollLeft;
+  let currentTranslate = 0;
+  let animationPaused = false;
+  
+  // Get current translateX from animation
+  function getCurrentTranslate() {
+    const style = window.getComputedStyle(track);
+    const matrix = new DOMMatrix(style.transform);
+    return matrix.m41;
+  }
+  
+  // Pause animation and set current position
+  function pauseAnimation() {
+    if (!animationPaused) {
+      currentTranslate = getCurrentTranslate();
+      track.style.animation = 'none';
+      track.style.transform = `translateX(${currentTranslate}px)`;
+      animationPaused = true;
+    }
+  }
+  
+  // Resume animation from current position
+  function resumeAnimation() {
+    if (animationPaused && !isDragging) {
+      // Calculate what percentage through the animation we are
+      const trackWidth = track.scrollWidth / 2;
+      const progress = Math.abs(currentTranslate) / trackWidth;
+      
+      // Resume animation
+      track.style.transform = '';
+      track.style.animation = '';
+      animationPaused = false;
+    }
+  }
+  
+  // Mouse events
+  banner.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    banner.classList.add('dragging');
+    startX = e.pageX;
+    pauseAnimation();
+    scrollLeft = currentTranslate;
+  });
+  
+  banner.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX;
+    const walk = (x - startX) * 1.5; // Drag sensitivity
+    currentTranslate = scrollLeft + walk;
+    
+    // Keep within bounds (loop)
+    const trackWidth = track.scrollWidth / 2;
+    if (currentTranslate > 0) currentTranslate = -trackWidth + currentTranslate;
+    if (currentTranslate < -trackWidth) currentTranslate = currentTranslate + trackWidth;
+    
+    track.style.transform = `translateX(${currentTranslate}px)`;
+  });
+  
+  banner.addEventListener('mouseup', () => {
+    isDragging = false;
+    banner.classList.remove('dragging');
+    // Resume animation after a short delay
+    setTimeout(resumeAnimation, 2000);
+  });
+  
+  banner.addEventListener('mouseleave', () => {
+    if (isDragging) {
+      isDragging = false;
+      banner.classList.remove('dragging');
+      setTimeout(resumeAnimation, 2000);
+    }
+  });
+  
+  // Touch events for mobile
+  banner.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    banner.classList.add('dragging');
+    startX = e.touches[0].pageX;
+    pauseAnimation();
+    scrollLeft = currentTranslate;
+  }, { passive: true });
+  
+  banner.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX;
+    const walk = (x - startX) * 1.5;
+    currentTranslate = scrollLeft + walk;
+    
+    const trackWidth = track.scrollWidth / 2;
+    if (currentTranslate > 0) currentTranslate = -trackWidth + currentTranslate;
+    if (currentTranslate < -trackWidth) currentTranslate = currentTranslate + trackWidth;
+    
+    track.style.transform = `translateX(${currentTranslate}px)`;
+  }, { passive: true });
+  
+  banner.addEventListener('touchend', () => {
+    isDragging = false;
+    banner.classList.remove('dragging');
+    setTimeout(resumeAnimation, 2000);
+  });
+}
+
+// Initialize both banners
+document.addEventListener('DOMContentLoaded', () => {
+  initBannerDrag('skillsBanner', '.skills-track');
+  initBannerDrag('iconBanner', '.icon-track');
+});

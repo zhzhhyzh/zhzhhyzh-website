@@ -655,31 +655,121 @@ p {
 /* =========================================================
    SECTIONS - Apple-Style Cards and Grids
    ========================================================= */
-.skills-grid {
-  display: grid;
-  gap: 0.75rem;
+/* =========================================================
+   SKILLS BANNER - Infinite Scrolling Animation
+   ========================================================= */
+.skills-banner-container {
+  position: relative;
   margin-top: 1.5rem;
-  text-align: center;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
 }
 
-.skills-grid span {
+.skills-banner {
+  overflow: hidden;
+  cursor: grab;
+  padding: 0.5rem 0;
+}
+
+.skills-banner:active {
+  cursor: grabbing;
+}
+
+.skills-track {
+  display: flex;
+  gap: 0.75rem;
+  width: max-content;
+  animation: scrollBanner 30s linear infinite;
+}
+
+.skills-banner:hover .skills-track,
+.skills-banner.dragging .skills-track {
+  animation-play-state: paused;
+}
+
+.skills-track span {
+  flex-shrink: 0;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1.25rem;
   font-size: 0.9rem;
   color: var(--text-secondary);
   transition: all var(--transition-fast);
-  cursor: default;
+  white-space: nowrap;
+  user-select: none;
 }
 
-.skills-grid span:hover {
-  transform: translateY(-3px) scale(1.02);
+.skills-track span:hover {
+  transform: translateY(-3px) scale(1.05);
   background: rgba(0, 113, 227, 0.15);
   border-color: rgba(0, 113, 227, 0.3);
   color: var(--text);
   box-shadow: 0 8px 25px rgba(0, 113, 227, 0.2);
+}
+
+@keyframes scrollBanner {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.banner-hint {
+  text-align: center;
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* Icon Banner */
+.icon-banner-container {
+  position: relative;
+  margin-top: 1.5rem;
+  overflow: hidden;
+  padding: 1rem 0;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-lg);
+  mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
+}
+
+.icon-banner {
+  overflow: hidden;
+  cursor: grab;
+}
+
+.icon-banner:active {
+  cursor: grabbing;
+}
+
+.icon-track {
+  display: flex;
+  gap: 2rem;
+  width: max-content;
+  animation: scrollIcons 25s linear infinite;
+  animation-direction: reverse;
+}
+
+.icon-banner:hover .icon-track,
+.icon-banner.dragging .icon-track {
+  animation-play-state: paused;
+}
+
+.icon-track img {
+  flex-shrink: 0;
+  height: 48px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  transition: transform var(--transition-fast);
+}
+
+.icon-track img:hover {
+  transform: scale(1.1);
+}
+
+@keyframes scrollIcons {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 .skill-notes {
@@ -687,20 +777,6 @@ p {
   color: var(--muted);
   font-size: 0.9rem;
   text-align: center;
-}
-
-.icon-wall {
-  margin-top: 1.5rem;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: var(--radius-lg);
-}
-
-.icon-wall img {
-  max-width: 100%;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
 }
 
 /* Projects Grid */
@@ -1174,7 +1250,7 @@ body.menu-open {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
-.light .skills-grid span,
+.light .skills-track span,
 .light .project,
 .light .gitcard,
 .light .achievements-list li {
@@ -1433,17 +1509,18 @@ body.menu-open {
     font-size: 1.5rem;
   }
   
-  .skills-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    .skills-track span {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .icon-track img {
+    height: 42px;
   }
   
   .github-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
-  }
-  
-  .gitcard img {
-    max-width: 100%;
   }
 }
 
@@ -1522,20 +1599,17 @@ body.menu-open {
     width: 100%;
   }
 
-  .skills-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-  }
-
-  .skills-grid span {
-    padding: 0.6rem 0.5rem;
+  .skills-track span {
+    padding: 0.5rem 0.8rem;
     font-size: 0.8rem;
   }
-
-  .icon-wall img {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
+  
+  .icon-track img {
+    height: 36px;
+  }
+  
+  .banner-hint {
+    font-size: 0.7rem;
   }
   
   .project {
@@ -1595,13 +1669,13 @@ body.menu-open {
     height: 150px;
   }
   
-  .skills-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .skills-track span {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
   }
   
-  .skills-grid span {
-    font-size: 0.75rem;
-    padding: 0.5rem 0.4rem;
+  .icon-track img {
+    height: 32px;
   }
 }
 
