@@ -362,6 +362,16 @@ const projectLinks = {
   blockchain: [
     { name: "Timelock Fund Transfer", url: "https://github.com/zhzhhyzh/Timelock-Solidity" }
   ],
+  snake: [
+    { name: "Play Snake Game", url: "https://zhzhhyzh.github.io/snake-game/" },
+    { name: "Play Count Stickman Game", url: "https://zhzhhyzh.github.io/count-stickman-game/" },
+    { name: "Play Upgrade Car Game", url: "https://zhzhhyzh.github.io/upgrade-car-game/" },
+    { name: "Play Dress Up Game", url: "https://zhzhhyzh.github.io/dress-up-game/" }
+  ],
+  owntools: [
+    { name: "Dev Tools", url: "https://zhzhhyzh-dev-tools.vercel.app/" },
+    // { name: "PDF Tools", url: "https://zhzhhyzh-dev-tools.vercel.app/" }
+  ]
 };
 
 // Handle "View Project" clicks
