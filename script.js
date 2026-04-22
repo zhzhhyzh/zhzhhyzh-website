@@ -364,14 +364,8 @@ const projectLinks = {
   ],
   snake: [
     { name: "Play Snake Game", url: "https://zhzhhyzh.github.io/snake-game/" },
-    { name: "Play Count Stickman Game", url: "https://zhzhhyzh.github.io/count-stickman-game/" },
-    { name: "Play Upgrade Car Game", url: "https://zhzhhyzh.github.io/upgrade-car-game/" },
-    { name: "Play Dress Up Game", url: "https://zhzhhyzh.github.io/dress-up-game/" }
+    { name: "GitHub Repo", url: "https://github.com/zhzhhyzh/snake-game" }
   ],
-  owntools: [
-    { name: "Dev Tools", url: "https://zhzhhyzh-dev-tools.vercel.app/" },
-    // { name: "PDF Tools", url: "https://zhzhhyzh-dev-tools.vercel.app/" }
-  ]
 };
 
 // Handle "View Project" clicks
