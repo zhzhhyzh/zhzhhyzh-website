@@ -364,7 +364,14 @@ const projectLinks = {
   ],
   snake: [
     { name: "Play Snake Game", url: "https://zhzhhyzh.github.io/snake-game/" },
-    { name: "GitHub Repo", url: "https://github.com/zhzhhyzh/snake-game" }
+    { name: "Play Tetris", url: "https://zhzhhyzh.github.io/tetris-game" },
+    { name: "Play Count Stickman Game", url: "https://zhzhhyzh.github.io/count-stickman-game" },
+    { name: "Play Upgrade Supercar Game", url: "https://zhzhhyzh.github.io/upgrade-car-game" },
+    { name: "Play Dress Up Game", url: "https://zhzhhyzh.github.io/dress-up-game" },
+  ],
+   owndev: [
+    { name: "Dev. needed tools", url: "https://zhzhhyzh-dev-tools.vercel.app/" },
+    { name: "PDF Tools", url: "https://zhzhhyzh-pdf-tools.vercel.app/" },
   ],
 };
 
