@@ -365,6 +365,7 @@ const projectLinks = {
   snake: [
     { name: "Play Snake Game", url: "https://zhzhhyzh.github.io/snake-game/" },
     { name: "Play Tetris", url: "https://zhzhhyzh.github.io/tetris-game" },
+    { name: "Play Slot Verse", url: "https://zhzhhyzh.github.io/slot-verse" },
     { name: "Play Count Stickman Game", url: "https://zhzhhyzh.github.io/count-stickman-game" },
     { name: "Play Upgrade Supercar Game", url: "https://zhzhhyzh.github.io/upgrade-car-game" },
     { name: "Play Dress Up Game", url: "https://zhzhhyzh.github.io/dress-up-game" },
