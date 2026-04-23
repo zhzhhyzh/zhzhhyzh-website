@@ -349,18 +349,18 @@
       <p>Live projects and tools you can try right now</p>
     </div>
 
+      <!-- Tools Section -->
+    <div class="section">
+      <h2 class="section-title">Developer Tools</h2>
+      <div class="project-grid" id="toolsGrid">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+    
     <!-- Games Section -->
     <div class="section">
       <h2 class="section-title">Games</h2>
       <div class="project-grid" id="gamesGrid">
-        <!-- Populated by JS -->
-      </div>
-    </div>
-
-    <!-- Tools Section -->
-    <div class="section">
-      <h2 class="section-title">Developer Tools</h2>
-      <div class="project-grid" id="toolsGrid">
         <!-- Populated by JS -->
       </div>
     </div>
@@ -433,7 +433,7 @@
     projects.tools.forEach((p, i) => {
       toolsGrid.appendChild(createCard(p, i * 100));
     });
-    
+
     projects.games.forEach((p, i) => {
       gamesGrid.appendChild(createCard(p, i * 100));
     });
