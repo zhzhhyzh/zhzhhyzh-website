@@ -374,6 +374,9 @@ const projectLinks = {
     { name: "Dev. needed tools", url: "https://zhzhhyzh-dev-tools.vercel.app/" },
     { name: "PDF Tools", url: "https://zhzhhyzh-pdf-tools.vercel.app/" },
   ],
+   agentic: [
+    { name: "Agentic AI Bank", url: "https://github.com/zhzhhyzh/AI-Banking" },
+  ],
 };
 
 // Handle "View Project" clicks
