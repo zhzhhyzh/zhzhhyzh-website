@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -28,7 +29,11 @@
       --transition-smooth: 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     html {
       scroll-behavior: smooth;
@@ -322,12 +327,15 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- Back Navigation -->
   <nav class="back-nav">
     <a href="index.html" class="back-link">
-      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      <svg viewBox="0 0 24 24">
+        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+      </svg>
       Back to Portfolio
     </a>
     <span class="nav-title">Deployed Projects</span>
@@ -368,6 +376,10 @@
     document.getElementById('year').textContent = new Date().getFullYear();
 
     const projects = {
+      tools: [
+        { name: "Dev Tools", url: "https://zhzhhyzh-dev-tools.vercel.app/", desc: "Collection of handy developer utilities" },
+        { name: "PDF Tools", url: "https://zhzhhyzh-pdf-tools.vercel.app/", desc: "Merge, split, and manage PDF files online" }
+      ],
       games: [
         { name: "Snake Game", url: "https://zhzhhyzh.github.io/snake-game/", desc: "Endless snake with skins, themes, procedural BGM & sprint mode" },
         { name: "Slot Verse", url: "https://zhzhhyzh.github.io/slot-verse/", desc: "Exciting igaming with various themes, NOT FOR PRODUCTION" },
@@ -375,10 +387,6 @@
         { name: "Upgrade Car Game", url: "https://zhzhhyzh.github.io/upgrade-car-game/", desc: "Upgrade and race your car to victory" },
         { name: "Dress Up Game", url: "https://zhzhhyzh.github.io/dress-up-game/", desc: "Style and dress up characters with cool outfits" },
         { name: "Tetris", url: "https://zhzhhyzh.github.io/tetris-game/", desc: "Classic Tetris with smooth controls" }
-      ],
-      tools: [
-        { name: "Dev Tools", url: "https://zhzhhyzh-dev-tools.vercel.app/", desc: "Collection of handy developer utilities" },
-        { name: "PDF Tools", url: "https://zhzhhyzh-pdf-tools.vercel.app/", desc: "Merge, split, and manage PDF files online" }
       ]
     };
 
@@ -442,4 +450,5 @@
     document.querySelectorAll('.reveal-card').forEach(card => observer.observe(card));
   </script>
 </body>
+
 </html>
