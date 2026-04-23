@@ -429,12 +429,13 @@
     const gamesGrid = document.getElementById('gamesGrid');
     const toolsGrid = document.getElementById('toolsGrid');
 
-    projects.games.forEach((p, i) => {
-      gamesGrid.appendChild(createCard(p, i * 100));
-    });
-
+    
     projects.tools.forEach((p, i) => {
       toolsGrid.appendChild(createCard(p, i * 100));
+    });
+    
+    projects.games.forEach((p, i) => {
+      gamesGrid.appendChild(createCard(p, i * 100));
     });
 
     // Reveal animation with IntersectionObserver
