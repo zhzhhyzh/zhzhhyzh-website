@@ -161,6 +161,8 @@
       text-decoration: none;
       color: inherit;
       display: block;
+      will-change: transform;
+      transform: translateZ(0);
     }
 
     .project-card:hover {
@@ -186,6 +188,12 @@
       transform-origin: top left;
       border: none;
       pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .preview-container iframe.frame-loaded {
+      opacity: 1;
     }
 
     .preview-overlay {
@@ -396,20 +404,14 @@
       card.target = '_blank';
       card.className = 'project-card reveal-card';
       card.style.transitionDelay = delay + 'ms';
+      card.dataset.previewUrl = project.url;
 
       const shortUrl = project.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
       card.innerHTML = `
         <div class="preview-container">
-          <div class="preview-loading" id="loader-${delay}">Loading preview...</div>
+          <div class="preview-loading">Loading preview...</div>
           <div class="preview-overlay"></div>
-          <iframe 
-            src="${project.url}" 
-            loading="lazy" 
-            sandbox="allow-scripts allow-same-origin"
-            title="${project.name} preview"
-            onload="document.getElementById('loader-${delay}').classList.add('loaded')"
-          ></iframe>
         </div>
         <div class="card-info">
           <div class="card-name">${project.name}</div>
@@ -438,15 +440,33 @@
       gamesGrid.appendChild(createCard(p, i * 100));
     });
 
-    // Reveal animation with IntersectionObserver
+    // Combined observer: reveal card + lazy-load iframe
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
+          const card = entry.target;
+          // Reveal animation
+          card.classList.add('visible');
+          // Lazy-load iframe
+          const url = card.dataset.previewUrl;
+          const container = card.querySelector('.preview-container');
+          const loader = card.querySelector('.preview-loading');
+          if (url && container && !container.querySelector('iframe')) {
+            const iframe = document.createElement('iframe');
+            iframe.loading = 'lazy';
+            iframe.sandbox = 'allow-scripts allow-same-origin';
+            iframe.title = card.querySelector('.card-name').textContent + ' preview';
+            iframe.onload = () => {
+              iframe.classList.add('frame-loaded');
+              if (loader) loader.classList.add('loaded');
+            };
+            iframe.src = url;
+            container.appendChild(iframe);
+          }
+          observer.unobserve(card);
         }
       });
-    }, { threshold: 0.1 });
+    }, { threshold: 0.05, rootMargin: '100px' });
 
     document.querySelectorAll('.reveal-card').forEach(card => observer.observe(card));
   </script>
