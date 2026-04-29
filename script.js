@@ -22,14 +22,14 @@ function animateGradient() {
     requestAnimationFrame(animateGradient);
     return;
   }
-  
+
   gradientT += 0.001; // Slower for smoother Apple-like transition
   if (gradientT >= 1) {
     gradientT = 0;
     currentTheme = nextTheme;
     nextTheme = (nextTheme + 1) % themes.length;
   }
-  
+
   bg.style.transition = "background 6s ease-in-out";
   bg.style.background = themes[currentTheme].gradient;
   requestAnimationFrame(animateGradient);
@@ -61,7 +61,7 @@ const observer = new IntersectionObserver((entries) => {
       observer.unobserve(entry.target);
     }
   });
-}, { 
+}, {
   threshold: 0.08,
   rootMargin: "0px 0px -50px 0px"
 });
@@ -83,16 +83,16 @@ if (!isTouch && !prefersReduce) {
       const ry = -((x - rect.width / 2) / damp);
       card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02)`;
     }
-    
+
     function reset() {
       rect = null;
       card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
     }
-    
+
     card.addEventListener("mouseenter", () => {
       card.style.transition = "transform 0.15s ease-out";
     }, { passive: true });
-    
+
     card.addEventListener("mousemove", update, { passive: true });
     card.addEventListener("mouseleave", () => {
       card.style.transition = "transform 0.4s ease-out";
@@ -115,11 +115,11 @@ if (!isTouch && !prefersReduce) {
       el.style.transition = "transform 0.15s ease-out";
       el.style.transform = `translate(${x / strength}px, ${y / strength}px)`;
     }
-    
-    function reset() { 
-      rect = null; 
+
+    function reset() {
+      rect = null;
       el.style.transition = "transform 0.3s ease-out";
-      el.style.transform = "translate(0,0)"; 
+      el.style.transform = "translate(0,0)";
     }
 
     el.addEventListener("mousemove", move, { passive: true });
@@ -212,12 +212,12 @@ if (!isTouch && !prefersReduce) {
     last = ts;
 
     ctx.clearRect(0, 0, w, h);
-    
+
     for (const s of stars) {
       s.pulse += 0.02;
       const alpha = 0.3 + 0.3 * Math.sin(s.pulse);
       const parallaxY = (window.scrollY * 0.02) * s.z;
-      
+
       ctx.globalAlpha = alpha * s.z;
       ctx.beginPath();
       ctx.arc(s.x, (s.y + parallaxY) % h, s.r, 0, Math.PI * 2);
@@ -242,15 +242,15 @@ function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTi
   let max = 1;
   let currentWidth = 0;
   let targetWidth = 0;
-  
-  function updateMax() { 
-    max = Math.max(1, document.body.scrollHeight - window.innerHeight); 
+
+  function updateMax() {
+    max = Math.max(1, document.body.scrollHeight - window.innerHeight);
   }
 
-  function update() { 
+  function update() {
     targetWidth = (window.scrollY / max) * 100;
   }
-  
+
   // Smooth animation for progress bar
   function animate() {
     const diff = targetWidth - currentWidth;
@@ -262,7 +262,7 @@ function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTi
   window.addEventListener('scroll', update, { passive: true });
   window.addEventListener('resize', () => { updateMax(); update(); }, { passive: true });
 
-  updateMax(); 
+  updateMax();
   update();
   animate();
 })();
@@ -370,11 +370,12 @@ const projectLinks = {
     { name: "Play Upgrade Supercar Game", url: "https://zhzhhyzh.github.io/upgrade-car-game" },
     { name: "Play Dress Up Game", url: "https://zhzhhyzh.github.io/dress-up-game" },
   ],
-   owndev: [
+  owndev: [
     { name: "Dev. needed tools", url: "https://zhzhhyzh-dev-tools.vercel.app/" },
     { name: "PDF Tools", url: "https://zhzhhyzh-pdf-tools.vercel.app/" },
+    { name: "Currency Converter", url: "https://currency-frontend-3mdz.onrender.com/" }
   ],
-   agentic: [
+  agentic: [
     { name: "Agentic AI Bank", url: "https://github.com/zhzhhyzh/AI-Banking" },
   ],
 };
@@ -418,23 +419,23 @@ window.addEventListener("click", e => {
 function initBannerDrag(bannerId, trackClass) {
   const banner = document.getElementById(bannerId);
   if (!banner) return;
-  
+
   const track = banner.querySelector(trackClass);
   if (!track) return;
-  
+
   let isDragging = false;
   let startX;
   let scrollLeft;
   let currentTranslate = 0;
   let animationPaused = false;
-  
+
   // Get current translateX from animation
   function getCurrentTranslate() {
     const style = window.getComputedStyle(track);
     const matrix = new DOMMatrix(style.transform);
     return matrix.m41;
   }
-  
+
   // Pause animation and set current position
   function pauseAnimation() {
     if (!animationPaused) {
@@ -444,21 +445,21 @@ function initBannerDrag(bannerId, trackClass) {
       animationPaused = true;
     }
   }
-  
+
   // Resume animation from current position
   function resumeAnimation() {
     if (animationPaused && !isDragging) {
       // Calculate what percentage through the animation we are
       const trackWidth = track.scrollWidth / 2;
       const progress = Math.abs(currentTranslate) / trackWidth;
-      
+
       // Resume animation
       track.style.transform = '';
       track.style.animation = '';
       animationPaused = false;
     }
   }
-  
+
   // Mouse events
   banner.addEventListener('mousedown', (e) => {
     isDragging = true;
@@ -467,29 +468,29 @@ function initBannerDrag(bannerId, trackClass) {
     pauseAnimation();
     scrollLeft = currentTranslate;
   });
-  
+
   banner.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
     e.preventDefault();
     const x = e.pageX;
     const walk = (x - startX) * 1.5; // Drag sensitivity
     currentTranslate = scrollLeft + walk;
-    
+
     // Keep within bounds (loop)
     const trackWidth = track.scrollWidth / 2;
     if (currentTranslate > 0) currentTranslate = -trackWidth + currentTranslate;
     if (currentTranslate < -trackWidth) currentTranslate = currentTranslate + trackWidth;
-    
+
     track.style.transform = `translateX(${currentTranslate}px)`;
   });
-  
+
   banner.addEventListener('mouseup', () => {
     isDragging = false;
     banner.classList.remove('dragging');
     // Resume animation after a short delay
     setTimeout(resumeAnimation, 2000);
   });
-  
+
   banner.addEventListener('mouseleave', () => {
     if (isDragging) {
       isDragging = false;
@@ -497,7 +498,7 @@ function initBannerDrag(bannerId, trackClass) {
       setTimeout(resumeAnimation, 2000);
     }
   });
-  
+
   // Touch events for mobile
   banner.addEventListener('touchstart', (e) => {
     isDragging = true;
@@ -506,20 +507,20 @@ function initBannerDrag(bannerId, trackClass) {
     pauseAnimation();
     scrollLeft = currentTranslate;
   }, { passive: true });
-  
+
   banner.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
     const x = e.touches[0].pageX;
     const walk = (x - startX) * 1.5;
     currentTranslate = scrollLeft + walk;
-    
+
     const trackWidth = track.scrollWidth / 2;
     if (currentTranslate > 0) currentTranslate = -trackWidth + currentTranslate;
     if (currentTranslate < -trackWidth) currentTranslate = currentTranslate + trackWidth;
-    
+
     track.style.transform = `translateX(${currentTranslate}px)`;
   }, { passive: true });
-  
+
   banner.addEventListener('touchend', () => {
     isDragging = false;
     banner.classList.remove('dragging');
