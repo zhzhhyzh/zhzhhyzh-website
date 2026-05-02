@@ -267,6 +267,56 @@ function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTi
   animate();
 })();
 
+// Contact form via local SMTP endpoint.
+(function contactForm() {
+  const form = document.getElementById('contactForm');
+  const status = document.getElementById('contactStatus');
+
+  if (!form || !status) return;
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton?.textContent || 'Send';
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
+
+    status.className = 'contact-status';
+    status.textContent = 'Sending...';
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Sending';
+    }
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to send message.');
+      }
+
+      form.reset();
+      status.className = 'contact-status success';
+      status.textContent = 'Message sent. Thanks for reaching out!';
+    } catch (error) {
+      status.className = 'contact-status error';
+      status.textContent = error.message || 'Unable to send message.';
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+      }
+    }
+  });
+})();
+
 // === Mobile menu open/close ===
 (function mobileMenu() {
   const menu = document.getElementById('mobileMenu');

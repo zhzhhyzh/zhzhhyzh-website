@@ -1045,6 +1045,21 @@ p {
   min-width: 150px;
 }
 
+.contact-status {
+  min-height: 1.4rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.contact-status.success {
+  color: #30d158;
+}
+
+.contact-status.error {
+  color: var(--danger);
+}
+
 .copyright {
   margin-top: 1.5rem;
   color: var(--muted);

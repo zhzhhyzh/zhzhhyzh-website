@@ -4,6 +4,7 @@ const path = require('path');
 const https = require('https');
 const http = require('http');
 const { createClient } = require('redis');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -546,6 +547,131 @@ app.get('/api/visitors/json', async (req, res) => {
     res.json({ count: visitors.length, visitors });
   } catch (err) {
     res.status(500).json({ error: 'Failed to read data', message: err.message });
+  }
+});
+
+// =========================================================
+// Contact Form SMTP Email
+// =========================================================
+const CONTACT_TO_EMAIL = process.env.CONTACT_TO_EMAIL || 'henryyzh0309@gmail.com';
+let smtpTransporter = null;
+
+function getSmtpTransporter() {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || 587);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!host || !user || !pass) {
+    throw new Error('SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and optionally SMTP_FROM_EMAIL in Vercel.');
+  }
+
+  if (!smtpTransporter) {
+    smtpTransporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass }
+    });
+  }
+
+  return smtpTransporter;
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ''));
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+app.post('/api/contact', async (req, res) => {
+  const name = String(req.body.name || '').trim();
+  const email = String(req.body.email || '').trim();
+  const message = String(req.body.message || '').trim();
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ error: 'Name, email, and message are required.' });
+  }
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: 'Please provide a valid email address.' });
+  }
+
+  if (name.length > 120 || email.length > 180 || message.length > 5000) {
+    return res.status(400).json({ error: 'Message is too long.' });
+  }
+
+  try {
+    const transporter = getSmtpTransporter();
+    const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER;
+    const safeName = name.replace(/[\r\n"]/g, '').trim() || 'Portfolio Visitor';
+    const subject = `PORTFOLIO CONTACT FROM ${safeName}`;
+    const confirmationSubject = 'Confirmation Contact with ZheHeng';
+    const plainText = [
+      `Name: ${name}`,
+      `Email: ${email}`,
+      '',
+      message
+    ].join('\n');
+    const confirmationText = [
+      `Hi ${name},`,
+      '',
+      'Thank you for contacting ZheHeng. This is a copied confirmation of the details you sent:',
+      '',
+      `Name: ${name}`,
+      `Email: ${email}`,
+      '',
+      'Message:',
+      message
+    ].join('\n');
+    const messageHtml = `
+      <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+      <p><strong>Message:</strong></p>
+      <div style="white-space:pre-wrap;padding:12px;border-left:3px solid #0071e3;background:#f6f8fb">${escapeHtml(message)}</div>
+    `;
+
+    await transporter.sendMail({
+      from: `"${safeName}" <${fromEmail}>`,
+      to: CONTACT_TO_EMAIL,
+      replyTo: `"${safeName}" <${email}>`,
+      subject,
+      text: plainText,
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111">
+          <h2>Personal Website Message Drop-IN</h2>
+          ${messageHtml}
+        </div>
+      `
+    });
+
+    await transporter.sendMail({
+      from: `"ZheHeng" <${fromEmail}>`,
+      to: email,
+      replyTo: CONTACT_TO_EMAIL,
+      subject: confirmationSubject,
+      text: confirmationText,
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111">
+          <h2>Confirmation Contact with ZheHeng</h2>
+          <p>Hi ${escapeHtml(name)},</p>
+          <p>Thank you for contacting ZheHeng. This is a copied confirmation of the details you sent:</p>
+          ${messageHtml}
+        </div>
+      `
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[Contact SMTP] Error:', err.message);
+    res.status(500).json({ error: 'Failed to send email.', message: err.message });
   }
 });
 
