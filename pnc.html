@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>Visitor Data Table</title>
   <style>
     body {
@@ -49,37 +50,50 @@
   <script>
     async function loadData() {
       try {
-        // Use API endpoint instead of static CSV file
-        const response = await fetch('/api/visitors');
-        const csvText = await response.text();
-        const lines = csvText.trim().split('\n');
+        const response = await fetch('/api/visitors/json');
+        if (!response.ok) {
+          let message = `Visitor API returned ${response.status}`;
+          try {
+            const errorData = await response.json();
+            message = errorData.message || errorData.error || message;
+          } catch (parseError) {
+            // Keep the status message if the response is not JSON.
+          }
+          throw new Error(message);
+        }
+        const data = await response.json();
+        const visitors = data.visitors || [];
         const tbody = document.querySelector('#dataTable tbody');
         tbody.innerHTML = ''; // Clear existing rows
 
-        if (lines.length <= 1) {
+        if (!visitors.length) {
           tbody.innerHTML = '<tr><td colspan="4">No visitors recorded yet</td></tr>';
+          document.querySelector('h1').textContent = 'Visitor Data (0 records)';
           return;
         }
 
-        for (let i = 1; i < lines.length; i++) { // Skip header
-          const [ip, region, dateTime, longLat] = lines[i].split(',');
-          if (!ip) continue;
+        visitors.forEach(visitor => {
           const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${ip || '-'}</td>
-            <td>${region || '-'}</td>
-            <td>${dateTime || '-'}</td>
-            <td>${longLat || '-'}</td>
-          `;
+          [visitor.ip, visitor.region, visitor.dateTime, visitor.longLat].forEach(value => {
+            const cell = document.createElement('td');
+            cell.textContent = value || '-';
+            row.appendChild(cell);
+          });
           tbody.appendChild(row);
-        }
+        });
         
         // Update count
-        document.querySelector('h1').textContent = `Visitor Data (${lines.length - 1} records)`;
+        document.querySelector('h1').textContent = `Visitor Data (${visitors.length} records)`;
       } catch (error) {
         console.error('Error loading data:', error);
         const tbody = document.querySelector('#dataTable tbody');
-        tbody.innerHTML = '<tr><td colspan="4">Error loading data. Make sure the server is running.</td></tr>';
+        tbody.innerHTML = '';
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 4;
+        cell.textContent = `Error loading data: ${error.message}`;
+        row.appendChild(cell);
+        tbody.appendChild(row);
       }
     }
 

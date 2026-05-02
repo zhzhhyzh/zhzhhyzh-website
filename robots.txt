@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /pnc
+Disallow: /pnc.html
+Disallow: /api/
+
+Sitemap: https://zhzhhyzh.ddns.net/sitemap.xml

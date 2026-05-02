@@ -30,8 +30,8 @@
     github: "https://github.com/zhzhhyzh",
     linkedin: "https://linkedin.com/in/zhzhhyzh",
     leetcode: "https://leetcode.com/zhzhhyzh",
-    facebook: "https://facebook.com/zhzhhyzh",
-    instagram: "https://instagram.com/zhzhhyzh",
+    facebook: "https://facebook.com/zheheng.yeoh",
+    instagram: "https://instagram.com/ob.hyzh",
     
     // Personal Info (for social media context)
     personalInfo: {
@@ -392,31 +392,25 @@
   async function getAIResponse(question) {
     const q = question.toLowerCase();
     
-    // Try local matching first (faster, no API cost)
+    // Use server-side RAG first so answers are grounded in retrieved profile facts.
+    try {
+      const apiResponse = await fetchAPIResponse(question);
+      if (apiResponse) return apiResponse;
+    } catch (e) {
+      console.log('RAG API not available, using local fallback');
+    }
+    
+    // Local matching remains as an offline fallback.
     const localResponse = getLocalResponse(q);
     if (localResponse) {
       // Simulate typing delay
       await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
       return localResponse;
     }
-    
-    // Try API if available
-    try {
-      const apiResponse = await fetchAPIResponse(question);
-      if (apiResponse) return apiResponse;
-    } catch (e) {
-      console.log('API not available, using fallback');
-    }
-    
+
     // Fallback response - strict focus on Zhe Heng
     await new Promise(r => setTimeout(r, 500));
-    const fallbacks = [
-      `I'm Zhe Heng's assistant and can only answer questions about him. Try asking about his skills, projects, work experience, or contact info!`,
-      `That's outside my expertise. I specialize in Zhe Heng's professional background - his skills (Java, Node.js, React, AI/ML), projects, or experience. What would you like to know?`,
-      `I focus specifically on Zhe Heng's profile. Ask me about his work at Ant International, his projects like StallSync, or how to connect with him!`,
-      `I can only help with questions about Zhe Heng. Try: "What are his skills?" or "How do I contact him?" or "Tell me about his projects!"`
-    ];
-    return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    return `I'm Zhe Heng's assistant and can only answer questions about him. Try asking about his skills, projects, work experience, or contact info!`;
   }
   
   function getLocalResponse(q) {
