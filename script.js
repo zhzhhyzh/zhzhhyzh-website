@@ -1,14 +1,16 @@
 // Performance helpers (keep these)
 const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isTouch = matchMedia('(hover: none)').matches;
+const root = document.documentElement;
+const systemTheme = window.matchMedia('(prefers-color-scheme: light)');
 let pageVisible = true;
 document.addEventListener('visibilitychange', () => { pageVisible = !document.hidden; });
 
-// === Apple-Inspired Animated Background Themes ===
+// === Luxe cinematic animated background themes ===
 const themes = [
-  { name: "Ocean", gradient: "radial-gradient(ellipse 80% 50% at 30% 40%, rgba(0, 113, 227, 0.18), transparent), radial-gradient(ellipse 60% 40% at 70% 60%, rgba(168, 85, 247, 0.12), transparent)" },
-  { name: "Aurora", gradient: "radial-gradient(ellipse 70% 50% at 25% 35%, rgba(99, 102, 241, 0.15), transparent), radial-gradient(ellipse 60% 45% at 75% 65%, rgba(236, 72, 153, 0.12), transparent)" },
-  { name: "Sunset", gradient: "radial-gradient(ellipse 75% 50% at 35% 45%, rgba(251, 146, 60, 0.14), transparent), radial-gradient(ellipse 55% 40% at 65% 55%, rgba(244, 63, 94, 0.11), transparent)" }
+  { name: "Obsidian", gradient: "radial-gradient(ellipse 70% 45% at 18% 14%, rgba(77, 141, 255, 0.22), transparent 62%), radial-gradient(ellipse 45% 35% at 82% 22%, rgba(255, 122, 217, 0.13), transparent 60%), linear-gradient(180deg, #020712 0%, #071325 52%, #030814 100%)" },
+  { name: "Siri", gradient: "radial-gradient(ellipse 58% 38% at 24% 24%, rgba(114, 231, 255, 0.2), transparent 62%), radial-gradient(ellipse 50% 38% at 76% 36%, rgba(164, 140, 255, 0.16), transparent 64%), linear-gradient(180deg, #020712 0%, #06101f 54%, #030814 100%)" },
+  { name: "Pale Blue", gradient: "radial-gradient(ellipse 68% 45% at 28% 18%, rgba(191, 232, 255, 0.17), transparent 64%), radial-gradient(ellipse 42% 34% at 82% 46%, rgba(95, 183, 255, 0.14), transparent 62%), linear-gradient(180deg, #030915 0%, #08172a 58%, #040815 100%)" }
 ];
 
 // === Smooth Gradient Transition ===
@@ -18,12 +20,17 @@ let nextTheme = 1;
 let gradientT = 0;
 
 function animateGradient() {
+  if (!bg) return;
+  if (root.classList.contains("light")) {
+    requestAnimationFrame(animateGradient);
+    return;
+  }
   if (!pageVisible) {
     requestAnimationFrame(animateGradient);
     return;
   }
 
-  gradientT += 0.001; // Slower for smoother Apple-like transition
+  gradientT += 0.0007;
   if (gradientT >= 1) {
     gradientT = 0;
     currentTheme = nextTheme;
@@ -36,37 +43,111 @@ function animateGradient() {
 }
 if (!prefersReduce) animateGradient();
 
+function setBackgroundTheme() {
+  if (!bg) return;
+  if (root.classList.contains("light")) {
+    bg.style.transition = "background 0.6s ease";
+    bg.style.background = "radial-gradient(ellipse 70% 42% at 18% 10%, rgba(84, 196, 255, 0.2), transparent 62%), radial-gradient(ellipse 48% 36% at 82% 18%, rgba(255, 150, 222, 0.1), transparent 64%), radial-gradient(ellipse 55% 40% at 58% 78%, rgba(167, 150, 255, 0.08), transparent 66%), linear-gradient(180deg, #ffffff 0%, #f5fbff 46%, #ffffff 100%)";
+  }
+}
+
 
 // Year
 document.getElementById("year").textContent = new Date().getFullYear();
 
 // Light/Dark toggle with smooth transition
-const root = document.documentElement;
 const toggle = document.getElementById("themeToggle");
-toggle.addEventListener("click", () => {
+function applyTheme(theme, persist = false) {
   root.style.transition = "background 0.5s ease";
-  root.classList.toggle("light");
-  // Update toggle icon
-  toggle.textContent = root.classList.contains("light") ? "🌙" : "🌓";
+  root.classList.toggle("light", theme === "light");
+  setBackgroundTheme();
+  if (toggle) toggle.textContent = theme === "light" ? "☀️" : "🌙";
+  if (persist) localStorage.setItem("theme", theme);
+}
+
+const savedTheme = localStorage.getItem("theme");
+applyTheme(savedTheme || (systemTheme.matches ? "light" : "dark"));
+
+systemTheme.addEventListener?.("change", (event) => {
+  if (localStorage.getItem("theme")) return;
+  applyTheme(event.matches ? "light" : "dark");
 });
 
-// Apple-style scroll reveal with staggered animations
+toggle?.addEventListener("click", () => {
+  applyTheme(root.classList.contains("light") ? "dark" : "light", true);
+});
+
+// Reversible cinematic scroll reveal.
 const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry, index) => {
+  entries.forEach((entry) => {
     if (entry.isIntersecting) {
-      // Add staggered delay for smoother reveal
-      setTimeout(() => {
-        entry.target.classList.add("visible");
-      }, index * 100);
-      observer.unobserve(entry.target);
+      entry.target.classList.add("visible");
+      entry.target.classList.remove("visible-out");
+    } else if (entry.boundingClientRect.top < 0) {
+      entry.target.classList.remove("visible");
+      entry.target.classList.add("visible-out");
+    } else {
+      entry.target.classList.remove("visible", "visible-out");
     }
   });
 }, {
-  threshold: 0.08,
-  rootMargin: "0px 0px -50px 0px"
+  threshold: [0, 0.12, 0.45],
+  rootMargin: "-8% 0px -10% 0px"
 });
 
 document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+
+// Subtle handcrafted parallax that reverses naturally while scrolling.
+(function cinematicParallax() {
+  if (prefersReduce) return;
+
+  const layers = Array.from(document.querySelectorAll("[data-depth]"));
+  if (!layers.length) return;
+
+  let ticking = false;
+  function update() {
+    ticking = false;
+    const viewportMid = window.innerHeight * 0.5;
+    layers.forEach((layer) => {
+      const depth = Number(layer.dataset.depth || 0);
+      const rect = layer.getBoundingClientRect();
+      const layerMid = rect.top + rect.height * 0.5;
+      const offset = (layerMid - viewportMid) * depth;
+      layer.style.setProperty("--parallax-y", `${Math.max(-70, Math.min(70, offset)).toFixed(2)}px`);
+    });
+  }
+
+  function requestUpdate() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  }
+
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate, { passive: true });
+  update();
+})();
+
+// Pointer-driven ambience for the hero light field.
+(function pointerAmbience() {
+  if (prefersReduce || isTouch) return;
+
+  let ticking = false;
+  let x = 50;
+  let y = 18;
+
+  window.addEventListener("pointermove", (event) => {
+    x = (event.clientX / window.innerWidth) * 100;
+    y = (event.clientY / window.innerHeight) * 100;
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      document.body.style.setProperty("--cursor-x", `${x.toFixed(2)}%`);
+      document.body.style.setProperty("--cursor-y", `${y.toFixed(2)}%`);
+      ticking = false;
+    });
+  }, { passive: true });
+})();
 
 // Apple-style smooth tilt on hover (desktop only)
 if (!isTouch && !prefersReduce) {
@@ -267,6 +348,20 @@ function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTi
   animate();
 })();
 
+// One-click return to the top once visitors reach the final scene.
+(function scrollToTopButton() {
+  const button = document.getElementById('scrollToTop');
+  if (!button) return;
+
+  button.addEventListener('click', () => {
+    const behavior = prefersReduce ? 'auto' : 'smooth';
+    document.documentElement.scrollTo({ top: 0, behavior });
+    document.body.scrollTo?.({ top: 0, behavior });
+    window.scrollTo({ top: 0, behavior });
+  });
+  button.classList.add('visible');
+})();
+
 // Contact form via local SMTP endpoint.
 (function contactForm() {
   const form = document.getElementById('contactForm');
@@ -383,6 +478,19 @@ const modalTitle = document.getElementById("modalTitle");
 const modalLinks = document.getElementById("modalLinks");
 const closeBtn = document.getElementById("modalClose"); // updated selector ✅
 
+function openProjectModal() {
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+  closeBtn?.focus();
+}
+
+function closeProjectModal() {
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+}
+
 // Define project links
 const projectLinks = {
   stallsync: [
@@ -443,23 +551,27 @@ document.querySelectorAll(".view-btn").forEach(btn => {
 
     // Populate modal with links
     modalLinks.innerHTML = links
-      .map(link => `<a href="${link.url}" target="_blank">${link.name}</a>`)
+      .map(link => `<a href="${link.url}" target="_blank" rel="noopener noreferrer">${link.name}</a>`)
       .join("");
 
     // Show modal
-    modal.style.display = "block";
+    openProjectModal();
   });
 });
 
 // ✅ Close button click
-closeBtn.addEventListener("click", () => {
-  modal.style.display = "none";
-});
+closeBtn?.addEventListener("click", closeProjectModal);
 
 // ✅ Click outside modal content to close
 window.addEventListener("click", e => {
   if (e.target === modal) {
-    modal.style.display = "none";
+    closeProjectModal();
+  }
+});
+
+window.addEventListener("keydown", e => {
+  if (e.key === "Escape" && modal?.classList.contains("open")) {
+    closeProjectModal();
   }
 });
 

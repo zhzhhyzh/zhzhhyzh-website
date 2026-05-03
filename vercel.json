@@ -9,6 +9,98 @@
     { "src": "*.js", "use": "@vercel/static" },
     { "src": "*.css", "use": "@vercel/static" }
   ],
+  "redirects": [
+    {
+      "source": "/dev-tools",
+      "destination": "https://zhzhhyzh-dev-tools.vercel.app/",
+      "permanent": false
+    },
+    {
+      "source": "/dev-tools/(.*)",
+      "destination": "https://zhzhhyzh-dev-tools.vercel.app/$1",
+      "permanent": false
+    },
+    {
+      "source": "/pdf-tools",
+      "destination": "https://zhzhhyzh-pdf-tools.vercel.app/",
+      "permanent": false
+    },
+    {
+      "source": "/pdf-tools/(.*)",
+      "destination": "https://zhzhhyzh-pdf-tools.vercel.app/$1",
+      "permanent": false
+    },
+    {
+      "source": "/currency",
+      "destination": "https://currency-frontend-3mdz.onrender.com/",
+      "permanent": false
+    },
+    {
+      "source": "/currency/(.*)",
+      "destination": "https://currency-frontend-3mdz.onrender.com/$1",
+      "permanent": false
+    },
+    {
+      "source": "/games/snake",
+      "destination": "https://zhzhhyzh.github.io/snake-game/",
+      "permanent": false
+    },
+    {
+      "source": "/games/snake/(.*)",
+      "destination": "https://zhzhhyzh.github.io/snake-game/$1",
+      "permanent": false
+    },
+    {
+      "source": "/games/slot-verse",
+      "destination": "https://zhzhhyzh.github.io/slot-verse/",
+      "permanent": false
+    },
+    {
+      "source": "/games/slot-verse/(.*)",
+      "destination": "https://zhzhhyzh.github.io/slot-verse/$1",
+      "permanent": false
+    },
+    {
+      "source": "/games/count-stickman",
+      "destination": "https://zhzhhyzh.github.io/count-stickman-game/",
+      "permanent": false
+    },
+    {
+      "source": "/games/count-stickman/(.*)",
+      "destination": "https://zhzhhyzh.github.io/count-stickman-game/$1",
+      "permanent": false
+    },
+    {
+      "source": "/games/upgrade-car",
+      "destination": "https://zhzhhyzh.github.io/upgrade-car-game/",
+      "permanent": false
+    },
+    {
+      "source": "/games/upgrade-car/(.*)",
+      "destination": "https://zhzhhyzh.github.io/upgrade-car-game/$1",
+      "permanent": false
+    },
+    {
+      "source": "/games/dress-up",
+      "destination": "https://zhzhhyzh.github.io/dress-up-game/",
+      "permanent": false
+    },
+    {
+      "source": "/games/dress-up/(.*)",
+      "destination": "https://zhzhhyzh.github.io/dress-up-game/$1",
+      "permanent": false
+    },
+    {
+      "source": "/games/tetris",
+      "destination": "https://zhzhhyzh.github.io/tetris-game/",
+      "permanent": false
+    },
+    {
+      "source": "/games/tetris/(.*)",
+      "destination": "https://zhzhhyzh.github.io/tetris-game/$1",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -17,78 +109,6 @@
     {
       "source": "/capture",
       "destination": "server.js"
-    },
-    {
-      "source": "/dev-tools",
-      "destination": "https://zhzhhyzh-dev-tools.vercel.app/"
-    },
-    {
-      "source": "/dev-tools/(.*)",
-      "destination": "https://zhzhhyzh-dev-tools.vercel.app/$1"
-    },
-    {
-      "source": "/pdf-tools",
-      "destination": "https://zhzhhyzh-pdf-tools.vercel.app/"
-    },
-    {
-      "source": "/pdf-tools/(.*)",
-      "destination": "https://zhzhhyzh-pdf-tools.vercel.app/$1"
-    },
-    {
-      "source": "/currency",
-      "destination": "https://currency-frontend-3mdz.onrender.com/"
-    },
-    {
-      "source": "/currency/(.*)",
-      "destination": "https://currency-frontend-3mdz.onrender.com/$1"
-    },
-    {
-      "source": "/games/snake",
-      "destination": "https://zhzhhyzh.github.io/snake-game/"
-    },
-    {
-      "source": "/games/snake/(.*)",
-      "destination": "https://zhzhhyzh.github.io/snake-game/$1"
-    },
-    {
-      "source": "/games/slot-verse",
-      "destination": "https://zhzhhyzh.github.io/slot-verse/"
-    },
-    {
-      "source": "/games/slot-verse/(.*)",
-      "destination": "https://zhzhhyzh.github.io/slot-verse/$1"
-    },
-    {
-      "source": "/games/count-stickman",
-      "destination": "https://zhzhhyzh.github.io/count-stickman-game/"
-    },
-    {
-      "source": "/games/count-stickman/(.*)",
-      "destination": "https://zhzhhyzh.github.io/count-stickman-game/$1"
-    },
-    {
-      "source": "/games/upgrade-car",
-      "destination": "https://zhzhhyzh.github.io/upgrade-car-game/"
-    },
-    {
-      "source": "/games/upgrade-car/(.*)",
-      "destination": "https://zhzhhyzh.github.io/upgrade-car-game/$1"
-    },
-    {
-      "source": "/games/dress-up",
-      "destination": "https://zhzhhyzh.github.io/dress-up-game/"
-    },
-    {
-      "source": "/games/dress-up/(.*)",
-      "destination": "https://zhzhhyzh.github.io/dress-up-game/$1"
-    },
-    {
-      "source": "/games/tetris",
-      "destination": "https://zhzhhyzh.github.io/tetris-game/"
-    },
-    {
-      "source": "/games/tetris/(.*)",
-      "destination": "https://zhzhhyzh.github.io/tetris-game/$1"
     },
     {
       "source": "/pnc",
