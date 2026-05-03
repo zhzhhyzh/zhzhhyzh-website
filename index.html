@@ -129,13 +129,57 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #0a0a0c 0%, #1a1a2e 100%);
-        transition: opacity 0.6s ease, visibility 0.6s ease;
+        overflow: visible;
+        background:
+          radial-gradient(circle at 50% 42%, rgba(114, 231, 255, 0.18), transparent 18rem),
+          radial-gradient(circle at 62% 36%, rgba(255, 122, 217, 0.08), transparent 20rem),
+          linear-gradient(180deg, #01050e 0%, #06101f 58%, #020712 100%);
+        transition: opacity 0.9s cubic-bezier(0.19, 1, 0.22, 1), visibility 0.9s ease;
+      }
+      #preloader::before {
+        content: '';
+        position: absolute;
+        width: min(58vw, 620px);
+        height: min(58vw, 620px);
+        border-radius: 50%;
+        background:
+          conic-gradient(from 230deg, transparent, rgba(114, 231, 255, 0.45), rgba(164, 140, 255, 0.32), rgba(255, 122, 217, 0.22), transparent);
+        filter: blur(24px);
+        opacity: 0.55;
+        animation: luxeHalo 2.2s cubic-bezier(0.19, 1, 0.22, 1) both;
+      }
+      #preloader::after {
+        content: 'INNOVATION';
+        position: relative;
+        z-index: 2;
+        font-family: 'Noto Serif', Georgia, serif;
+        color: #f7fbff;
+        font-size: clamp(2.4rem, 8vw, 6.8rem);
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-indent: 0.16em;
+        text-shadow:
+          0 0 34px rgba(114, 231, 255, 0.45),
+          0 0 80px rgba(164, 140, 255, 0.22);
+        animation: luxeTitle 1.7s cubic-bezier(0.19, 1, 0.22, 1) both;
       }
       #preloader.hidden {
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
+      }
+      html.preloader-active .glass-header,
+      html.preloader-active .hero,
+      html.preloader-active section,
+      html.preloader-active footer {
+        opacity: 0;
+        transform: scale(0.985);
+      }
+      .glass-header,
+      .hero,
+      section,
+      footer {
+        transition: opacity 0.8s cubic-bezier(0.19, 1, 0.22, 1), transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
       }
       
       /* Lock scroll during preloader */
@@ -151,6 +195,7 @@
       .book-container {
         perspective: 1000px;
         position: relative;
+        display: none;
       }
       
       .book {
@@ -329,14 +374,29 @@
       
       .loading-bar {
         position: absolute;
-        bottom: 40px;
+        bottom: clamp(3rem, 8vh, 5rem);
         left: 50%;
         transform: translateX(-50%);
-        width: 120px;
+        width: min(220px, 54vw);
         height: 2px;
-        background: rgba(255,255,255,0.1);
+        background: rgba(191, 232, 255, 0.12);
         border-radius: 2px;
         overflow: hidden;
+        box-shadow: 0 0 24px rgba(114, 231, 255, 0.16);
+      }
+      .loading-bar::before {
+        content: 'SOFTWARE ENGINEER / FULL-STACK / AI & CLOUD';
+        position: absolute;
+        left: 50%;
+        bottom: 14px;
+        width: max-content;
+        transform: translateX(-50%);
+        color: rgba(216, 232, 251, 0.72);
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.68rem;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        animation: luxeSubtitle 1.5s ease both;
       }
       
       .loading-bar::after {
@@ -346,13 +406,36 @@
         top: 0;
         height: 100%;
         width: 0;
-        background: linear-gradient(90deg, #0071e3, #5e5ce6);
-        animation: loadProgress 1.3s ease-out forwards;
+        background: linear-gradient(90deg, transparent, #72e7ff, #a48cff, #ff7ad9);
+        animation: loadProgress 1.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
       }
       
       @keyframes loadProgress {
         0% { width: 0; }
         100% { width: 100%; }
+      }
+      @keyframes luxeHalo {
+        0% { opacity: 0; transform: scale(0.72) rotate(-18deg); }
+        55% { opacity: 0.68; }
+        100% { opacity: 0.48; transform: scale(1) rotate(8deg); }
+      }
+      @keyframes luxeTitle {
+        0% { opacity: 0; transform: translateY(18px) scale(0.96); filter: blur(10px); }
+        55% { opacity: 1; filter: blur(0); }
+        100% { opacity: 0.92; transform: translateY(0) scale(1); }
+      }
+      @keyframes luxeSubtitle {
+        from { opacity: 0; transform: translate(-50%, 8px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #preloader,
+        #preloader::before,
+        #preloader::after,
+        .loading-bar::before,
+        .loading-bar::after {
+          animation: none !important;
+        }
       }
     </style>
     
@@ -378,8 +461,8 @@
   </div>
   
   <script>
-    // The cinematic hero is now the opening scene.
-    document.documentElement.classList.remove('preloader-active');
+    const shouldPlayLoader = !sessionStorage.getItem('luxeLoaderPlayed');
+    document.documentElement.classList.toggle('preloader-active', shouldPlayLoader);
     
     // Scroll to top on page load
     if ('scrollRestoration' in history) {
@@ -392,21 +475,24 @@
       const preloader = document.getElementById('preloader');
       if (preloader && !preloader.classList.contains('hidden')) {
         preloader.classList.add('hidden');
+        sessionStorage.setItem('luxeLoaderPlayed', 'true');
         document.documentElement.classList.remove('preloader-active');
         // Ensure scroll to top
         window.scrollTo({ top: 0, behavior: 'instant' });
       }
     }
     
-    hidePreloader();
+    if (!shouldPlayLoader) {
+      hidePreloader();
+    }
     
     // Hide preloader when page is fully loaded
     window.addEventListener('load', function() {
-      setTimeout(hidePreloader, 100);
+      setTimeout(hidePreloader, shouldPlayLoader ? 1650 : 0);
     });
     
-    // Fallback: hide after 0.5 seconds max
-    setTimeout(hidePreloader, 500);
+    // Fallback: hide after 2.1 seconds max
+    setTimeout(hidePreloader, shouldPlayLoader ? 2100 : 0);
   </script>
 
   <!-- Cursor bubble -->
